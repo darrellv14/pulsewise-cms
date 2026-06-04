@@ -1,0 +1,12 @@
+@import 'tailwindcss';
+@plugin "@tailwindcss/typography";
+
+@theme {
+  --color-pulse: #f04666;
+  --color-pulse-light: #f8718a;
+  --color-pulse-dark: #d93654;
+}
+
+body {
+  @apply bg-slate-50 text-slate-600 font-sans;
+}

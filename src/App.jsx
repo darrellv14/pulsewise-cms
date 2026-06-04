@@ -1,0 +1,79 @@
+import { lazy, Suspense } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuthProvider, useAuth } from './auth/AuthContext.jsx';
+import { AppLayout } from './components/AppLayout.jsx';
+import { LoginPage } from './pages/LoginPage.jsx';
+import { ArticlesPage } from './pages/ArticlesPage.jsx';
+import { ArticleDetailPage } from './pages/ArticleDetailPage.jsx';
+import { ModerationPage } from './pages/ModerationPage.jsx';
+import { MyArticlesPage } from './pages/MyArticlesPage.jsx';
+
+const EditorPage = lazy(() =>
+  import('./pages/EditorPage.jsx').then((module) => ({
+    default: module.EditorPage
+  }))
+);
+
+function ProtectedRoute({ children }) {
+  const { isAuthenticated, isBootstrapping } = useAuth();
+
+  if (isBootstrapping) {
+    return <div className="screen-center">Preparing workspace...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { user } = useAuth();
+
+  if (user?.role !== 'admin') {
+    return <Navigate to="/articles" replace />;
+  }
+
+  return children;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Suspense
+        fallback={<div className="screen-center">Loading workspace...</div>}
+      >
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/articles" replace />} />
+            <Route path="articles" element={<ArticlesPage />} />
+            <Route path="articles/:slug" element={<ArticleDetailPage />} />
+            <Route path="my-articles" element={<MyArticlesPage />} />
+            <Route path="editor/new" element={<EditorPage mode="create" />} />
+            <Route
+              path="editor/:articleId"
+              element={<EditorPage mode="edit" />}
+            />
+            <Route
+              path="moderation"
+              element={
+                <AdminRoute>
+                  <ModerationPage />
+                </AdminRoute>
+              }
+            />
+          </Route>
+        </Routes>
+      </Suspense>
+    </AuthProvider>
+  );
+}
