@@ -206,9 +206,13 @@ export async function requestUploadSignature(kind = 'cover') {
   return response.data.data;
 }
 
-export async function uploadEducationImage(file, kind = 'cover') {
+export async function uploadEducationImage(file, kind = 'cover', options = {}) {
   const signaturePayload = await requestUploadSignature(kind);
-  const upload = await uploadViaCloudinary({ file, signaturePayload });
+  const upload = await uploadViaCloudinary({
+    file,
+    signaturePayload,
+    onProgress: options.onProgress
+  });
   return {
     url: upload.secure_url,
     publicId: upload.public_id

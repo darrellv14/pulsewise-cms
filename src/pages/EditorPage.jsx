@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { InlineLoader } from '../components/AsyncState.jsx';
+import { EditorSkeleton } from '../components/AsyncState.jsx';
 import { ArticleForm } from '../components/ArticleForm.jsx';
 import { NotFoundPage } from './NotFoundPage.jsx';
 import {
@@ -57,8 +57,12 @@ export function EditorPage({ mode }) {
 
   const invalidateEducationCollections = () => {
     queryClient.invalidateQueries({ queryKey: ['education', 'my-articles'] });
-    queryClient.invalidateQueries({ queryKey: ['education', 'moderation-articles'] });
-    queryClient.invalidateQueries({ queryKey: ['education', 'moderation-revisions'] });
+    queryClient.invalidateQueries({
+      queryKey: ['education', 'moderation-articles']
+    });
+    queryClient.invalidateQueries({
+      queryKey: ['education', 'moderation-revisions']
+    });
   };
 
   const autosaveMutation = useMutation({
@@ -147,11 +151,7 @@ export function EditorPage({ mode }) {
   }, [articleId, mode]);
 
   if (loading) {
-    return (
-      <div className="flex-1 flex justify-center p-12">
-        <InlineLoader label="Menyiapkan editor artikel..." />
-      </div>
-    );
+    return <EditorSkeleton />;
   }
 
   if (error?.type === 'ghost') {

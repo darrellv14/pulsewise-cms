@@ -21,7 +21,11 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-export async function uploadViaCloudinary({ file, signaturePayload }) {
+export async function uploadViaCloudinary({
+  file,
+  signaturePayload,
+  onProgress
+}) {
   const formData = new FormData();
   formData.set('file', file);
   formData.set('api_key', signaturePayload.apiKey);
@@ -40,24 +44,30 @@ export async function uploadViaCloudinary({ file, signaturePayload }) {
   }
 
   const cloudName = signaturePayload.cloudName;
-  const response = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-    {
-      method: 'POST',
-      body: formData
-    }
-  );
 
-  if (!response.ok) {
-    let message = 'Cloudinary upload failed';
-    try {
-      const payload = await response.json();
-      message = payload?.error?.message || message;
-    } catch {
-      // ignore parse failures
-    }
+  try {
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      formData,
+      {
+        onUploadProgress: (event) => {
+          if (!onProgress || !event.total) {
+            return;
+          }
+
+          const percent = Math.max(
+            0,
+            Math.min(100, Math.round((event.loaded / event.total) * 100))
+          );
+          onProgress(percent);
+        }
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    const message =
+      error?.response?.data?.error?.message || 'Cloudinary upload failed';
     throw new Error(message);
   }
-
-  return response.json();
 }

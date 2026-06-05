@@ -121,6 +121,30 @@ function getAutosaveMessage(status, lastSavedAt) {
   return 'Saving';
 }
 
+function UploadProgress({ label, progress, tone = 'pulse' }) {
+  const toneClasses =
+    tone === 'emerald'
+      ? 'bg-emerald-500'
+      : tone === 'amber'
+        ? 'bg-amber-500'
+        : 'bg-pulse';
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <div className="mb-2 flex items-center justify-between gap-4">
+        <span className="text-sm font-medium text-slate-700">{label}</span>
+        <span className="text-xs font-semibold text-slate-400">{progress}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className={`h-full rounded-full transition-all duration-200 ${toneClasses}`}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function ArticleForm({
   categories,
   tagOptions,
@@ -133,6 +157,8 @@ export function ArticleForm({
   const latestMarkdownRef = useRef(initialValue?.contentMarkdown || '');
   const editorMarkdown = initialValue?.contentMarkdown || '';
   const [coverUploading, setCoverUploading] = useState(false);
+  const [coverUploadProgress, setCoverUploadProgress] = useState(0);
+  const [inlineUpload, setInlineUpload] = useState(null);
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
   const [contentVersion, setContentVersion] = useState(0);
@@ -206,8 +232,22 @@ export function ArticleForm({
       linkPlugin(),
       imagePlugin({
         imageUploadHandler: async (file) => {
-          const upload = await uploadEducationImage(file, 'inline');
-          return upload.url;
+          setInlineUpload({ fileName: file.name, progress: 0 });
+          try {
+            const upload = await uploadEducationImage(file, 'inline', {
+              onProgress: (progress) =>
+                setInlineUpload({ fileName: file.name, progress })
+            });
+            setInlineUpload({ fileName: file.name, progress: 100 });
+            setTimeout(() => setInlineUpload(null), 700);
+            return upload.url;
+          } catch (error) {
+            setInlineUpload(null);
+            toast.error(
+              error?.message || 'Gambar di isi artikel gagal diunggah.'
+            );
+            throw error;
+          }
         }
       }),
       toolbarPlugin({
@@ -234,14 +274,19 @@ export function ArticleForm({
 
   async function handleCoverUpload(file) {
     setCoverUploading(true);
+    setCoverUploadProgress(0);
     try {
-      const upload = await uploadEducationImage(file, 'cover');
+      const upload = await uploadEducationImage(file, 'cover', {
+        onProgress: (progress) => setCoverUploadProgress(progress)
+      });
       setForm((current) => ({
         ...current,
         coverImageUrl: upload.url,
         coverImagePublicId: upload.publicId
       }));
       setContentVersion((current) => current + 1);
+      setCoverUploadProgress(100);
+      setTimeout(() => setCoverUploadProgress(0), 700);
     } finally {
       setCoverUploading(false);
     }
@@ -433,6 +478,13 @@ export function ArticleForm({
               )}
             </div>
           </div>
+          {(coverUploading || coverUploadProgress > 0) && (
+            <UploadProgress
+              label="Mengunggah cover photo..."
+              progress={coverUploadProgress}
+              tone="pulse"
+            />
+          )}
         </div>
 
         <div>
@@ -570,6 +622,15 @@ export function ArticleForm({
               </p>
             </div>
           </div>
+          {inlineUpload ? (
+            <div className="mb-3">
+              <UploadProgress
+                label={`Mengunggah gambar konten: ${inlineUpload.fileName}`}
+                progress={inlineUpload.progress}
+                tone="emerald"
+              />
+            </div>
+          ) : null}
           <div
             className={`rounded-2xl sm:rounded-[28px] border bg-white p-2 sm:p-3 overflow-hidden ${errors.contentMarkdown ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200'}`}
           >
