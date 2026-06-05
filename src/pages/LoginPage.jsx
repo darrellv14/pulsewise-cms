@@ -7,7 +7,7 @@ import { GOOGLE_CLIENT_ID } from '../config.js';
 
 function GoogleMark() {
   return (
-    <svg viewBox="0 0 18 18" aria-hidden="true" className="h-4 w-4 shrink-0">
+    <svg viewBox="0 0 18 18" aria-hidden="true" className="h-5 w-5 shrink-0">
       <path
         fill="#4285F4"
         d="M17.64 9.2045c0-.6382-.0573-1.2518-.1636-1.8409H9v3.4818h4.8436c-.2086 1.125-.8427 2.0782-1.7963 2.7164v2.2582h2.9086c1.7018-1.5668 2.6836-3.8741 2.6836-6.6155z"
@@ -106,10 +106,10 @@ export function LoginPage() {
     window.google.accounts.id.renderButton(googleButtonRef.current, {
       theme: 'outline',
       size: 'large',
-      text: 'continue_with',
-      shape: 'pill',
+      text: 'signin_with',
+      shape: 'rectangular',
       logo_alignment: 'left',
-      width: googleButtonRef.current.offsetWidth || 320
+      width: googleButtonRef.current.offsetWidth || 360
     });
     setGoogleReady(true);
   }, [handleGoogleCredential]);
@@ -147,34 +147,76 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="max-w-200 w-full bg-white rounded-3xl shadow-xl border border-slate-100 flex flex-col md:flex-row overflow-hidden">
-        <div className="md:w-5/12 bg-linear-to-br from-pulse to-pulse-dark p-10 text-white flex flex-col justify-between relative overflow-hidden">
-          <div className="relative z-10 flex items-center gap-3 mb-12">
-            <HeartPulse size={32} />
-            <h1 className="font-bold text-2xl tracking-tight">PulseWise</h1>
+    <div className="min-h-screen bg-linear-to-br from-rose-50 via-white to-amber-50 p-4 md:p-6">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-6xl overflow-hidden rounded-[32px] border border-rose-100 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.10)] md:min-h-[calc(100vh-3rem)]">
+        <div className="hidden w-[44%] flex-col justify-between bg-linear-to-br from-pulse to-pulse-dark px-10 py-12 text-white md:flex">
+          <div>
+            <div className="mb-14 flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/14 ring-1 ring-white/20">
+                <HeartPulse size={24} />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
+                  PulseWise
+                </p>
+                <h1 className="text-2xl font-bold tracking-tight">
+                  CMS Workspace
+                </h1>
+              </div>
+            </div>
+            <div className="max-w-md space-y-5">
+              <h2 className="text-4xl font-black leading-tight">
+                Kelola edukasi kesehatan dengan panel kerja yang rapi.
+              </h2>
+              <p className="text-sm leading-7 text-white/80">
+                Tulis artikel, unggah visual, ajukan review, dan moderasi semua
+                konten edukasi PulseWise dari satu tempat yang terasa tenang
+                dipakai tiap hari.
+              </p>
+            </div>
           </div>
-          <div className="relative z-10">
-            <h2 className="text-3xl font-extrabold mb-4 leading-tight">
-              Editorial workspace untuk edukasi.
-            </h2>
-            <p className="text-pulse-100 text-sm leading-relaxed">
-              Tulis artikel, ajukan review, moderasi konten, dan kelola cover
-              image dalam satu panel kerja terpadu.
-            </p>
+
+          <div className="grid gap-3 text-sm text-white/85">
+            <div className="rounded-2xl border border-white/14 bg-white/10 px-4 py-4 backdrop-blur-xs">
+              Artikel tidak langsung tayang. Semua konten tetap melewati
+              approval admin.
+            </div>
+            <div className="rounded-2xl border border-white/14 bg-white/10 px-4 py-4 backdrop-blur-xs">
+              Akun yang login dengan Google harus sudah terhubung ke akun
+              PulseWise aktif.
+            </div>
           </div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
         </div>
 
-        <div className="md:w-7/12 p-8 md:p-12">
-          <div className="max-w-sm mx-auto">
+        <div className="flex flex-1 items-center justify-center px-5 py-8 sm:px-8 md:px-12">
+          <div className="w-full max-w-md">
+            <div className="mb-8 md:hidden">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pulse text-white shadow-sm">
+                  <HeartPulse size={20} />
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-pulse/70">
+                    PulseWise
+                  </p>
+                  <h1 className="text-xl font-bold text-slate-900">
+                    CMS Workspace
+                  </h1>
+                </div>
+              </div>
+              <p className="text-sm leading-6 text-slate-500">
+                Masuk untuk menulis, mengelola, dan meninjau artikel edukasi
+                PulseWise.
+              </p>
+            </div>
+
             <div className="mb-8">
-              <h3 className="text-2xl font-bold text-slate-900">
+              <h2 className="text-3xl font-black tracking-tight text-slate-900">
                 Masuk ke CMS
-              </h3>
-              <p className="text-slate-500 text-sm mt-1">
-                Gunakan akun PulseWise Anda.
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-slate-500">
+                Gunakan akun PulseWise Anda. Email dan password tetap didukung,
+                dan akun Google bisa dipakai kalau memang sudah terhubung.
               </p>
             </div>
 
@@ -201,9 +243,9 @@ export function LoginPage() {
                 }
               }}
             >
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">
-                  Email Address
+                  Email address
                 </label>
                 <div className="relative">
                   <Mail
@@ -216,12 +258,12 @@ export function LoginPage() {
                     type="email"
                     required
                     placeholder="nama@email.com"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-slate-800 transition-all outline-none"
+                    className="h-13 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition focus:border-pulse/35 focus:bg-white focus:ring-4 focus:ring-pulse/10"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">
                   Password
                 </label>
@@ -236,7 +278,7 @@ export function LoginPage() {
                     type="password"
                     required
                     placeholder="��������"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-slate-800 transition-all outline-none"
+                    className="h-13 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition focus:border-pulse/35 focus:bg-white focus:ring-4 focus:ring-pulse/10"
                   />
                 </div>
               </div>
@@ -244,12 +286,12 @@ export function LoginPage() {
               {(error || googleError) && (
                 <div className="space-y-2">
                   {error && (
-                    <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 font-medium">
+                    <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
                       {error}
                     </div>
                   )}
                   {googleError && (
-                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg text-sm text-amber-700 font-medium">
+                    <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
                       {googleError}
                     </div>
                   )}
@@ -259,7 +301,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={submitting || googleSubmitting || !email || !password}
-                className="w-full bg-pulse hover:bg-pulse-dark text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-pulse font-bold text-white shadow-sm transition hover:bg-pulse-dark disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {submitting ? (
                   <>
@@ -271,40 +313,37 @@ export function LoginPage() {
               </button>
             </form>
 
-            <div className="my-6 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+            <div className="my-6 flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300">
               <span className="h-px flex-1 bg-slate-200" />
               <span>atau</span>
               <span className="h-px flex-1 bg-slate-200" />
             </div>
 
-            <div className="space-y-3">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
-                <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                  <GoogleMark />
-                  <span>Masuk dengan Google</span>
-                </div>
-                <p className="mb-4 text-xs leading-relaxed text-slate-500">
-                  Gunakan ini untuk akun PulseWise yang memang sudah terhubung
-                  ke Google. Akun yang masih perlu onboarding atau verifikasi
-                  OTP akan diarahkan untuk menyelesaikan proses itu lebih dulu.
-                </p>
-                <div
-                  ref={googleButtonRef}
-                  className="min-h-11 w-full overflow-hidden rounded-full"
-                />
-                {!googleReady && !googleError && (
-                  <div className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-400">
-                    <Loader2 size={14} className="animate-spin" /> Menyiapkan
-                    tombol Google...
-                  </div>
-                )}
-                {googleSubmitting && (
-                  <div className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-500">
-                    <Loader2 size={14} className="animate-spin" /> Memverifikasi
-                    akun Google...
-                  </div>
-                )}
+            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="mb-3 flex items-center gap-3 text-sm font-semibold text-slate-700">
+                <GoogleMark />
+                <span>Masuk dengan Google</span>
               </div>
+              <p className="mb-4 text-sm leading-6 text-slate-500">
+                Cocok untuk akun PulseWise yang memang sudah terhubung ke
+                Google.
+              </p>
+              <div
+                ref={googleButtonRef}
+                className="min-h-[44px] w-full overflow-hidden rounded-xl border border-slate-200 bg-white"
+              />
+              {!googleReady && !googleError && (
+                <div className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-400">
+                  <Loader2 size={14} className="animate-spin" /> Menyiapkan
+                  tombol Google...
+                </div>
+              )}
+              {googleSubmitting && (
+                <div className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-500">
+                  <Loader2 size={14} className="animate-spin" /> Memverifikasi
+                  akun Google...
+                </div>
+              )}
             </div>
           </div>
         </div>
