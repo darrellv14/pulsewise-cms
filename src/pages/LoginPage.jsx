@@ -72,6 +72,27 @@ export function LoginPage() {
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  const handleNormalLogin = async (event) => {
+    event.preventDefault();
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      await login({ email, password });
+      toast.success('Berhasil masuk ke PulseWise CMS.');
+    } catch (loginError) {
+      const message =
+        loginError?.response?.data?.message ||
+        'Login gagal. Periksa kembali email dan password.';
+
+      setError(message);
+      toast.error(message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleGoogleSuccess = async (tokenResponse) => {
     if (!tokenResponse?.access_token) {
       const message = 'Google tidak mengirim access token yang valid.';
@@ -94,6 +115,7 @@ export function LoginPage() {
       if (nextStep === 'COMPLETE_REGISTRATION') {
         const message =
           'Akun Google ini belum siap masuk ke CMS. Selesaikan onboarding akun PulseWise terlebih dahulu.';
+
         setError(message);
         toast.error(message);
         return;
@@ -102,6 +124,7 @@ export function LoginPage() {
       if (nextStep === 'VERIFY_OTP') {
         const message =
           'Akun ini masih menunggu verifikasi OTP. Selesaikan verifikasi dulu di aplikasi PulseWise.';
+
         setError(message);
         toast.error(message);
         return;
@@ -112,6 +135,7 @@ export function LoginPage() {
       const message =
         loginError?.response?.data?.message ||
         'Login Google gagal. Pastikan akun ini memang sudah terhubung ke PulseWise.';
+
       setError(message);
       toast.error(message);
     } finally {
@@ -125,12 +149,25 @@ export function LoginPage() {
     scope: 'openid email profile',
     onSuccess: handleGoogleSuccess,
     onError: () => {
-      setGoogleSubmitting(false);
       const message = 'Login Google dibatalkan atau gagal dibuka.';
+
+      setGoogleSubmitting(false);
       setError(message);
       toast.error(message);
     }
   });
+
+  const handleGoogleClick = () => {
+    setError('');
+    setGoogleSubmitting(true);
+
+    /*
+      Jangan pakai await, setTimeout, atau trigger click via ref di sini.
+      startGoogleLogin() harus dipanggil langsung dari onClick supaya popup
+      tetap dianggap sebagai user gesture oleh browser.
+    */
+    startGoogleLogin();
+  };
 
   if (isAuthenticated) {
     return <Navigate to="/articles" replace />;
@@ -170,36 +207,18 @@ export function LoginPage() {
               </p>
             </div>
 
-            <form
-              className="space-y-5"
-              onSubmit={async (event) => {
-                event.preventDefault();
-                setSubmitting(true);
-                setError('');
-
-                try {
-                  await login({ email, password });
-                  toast.success('Berhasil masuk ke PulseWise CMS.');
-                } catch (loginError) {
-                  const message =
-                    loginError?.response?.data?.message ||
-                    'Login gagal. Periksa kembali email dan password.';
-                  setError(message);
-                  toast.error(message);
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-            >
+            <form className="space-y-5" onSubmit={handleNormalLogin}>
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">
                   Email Address
                 </label>
+
                 <div className="relative">
                   <Mail
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                     size={18}
                   />
+
                   <input
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
@@ -215,11 +234,13 @@ export function LoginPage() {
                 <label className="text-sm font-semibold text-slate-700">
                   Password
                 </label>
+
                 <div className="relative">
                   <Lock
                     className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
                     size={18}
                   />
+
                   <input
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
@@ -262,18 +283,7 @@ export function LoginPage() {
             <GoogleLoginButton
               loading={googleSubmitting}
               disabled={submitting}
-              onClick={() => {
-                setError('');
-                setGoogleSubmitting(true);
-
-                /*
-                  Penting:
-                  startGoogleLogin() harus dipanggil langsung dari onClick.
-                  Jangan taruh await, setTimeout, atau trigger click via ref.
-                  Itu yang sering bikin popup dianggap blocked.
-                */
-                startGoogleLogin();
-              }}
+              onClick={handleGoogleClick}
             />
           </div>
         </div>

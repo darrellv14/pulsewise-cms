@@ -29,6 +29,7 @@ export function AuthProvider({ children }) {
     } else {
       setAuthToken(null);
     }
+
     setIsBootstrapping(false);
   }, [session]);
 
@@ -39,23 +40,31 @@ export function AuthProvider({ children }) {
       user: session?.user ?? null,
       isAuthenticated: Boolean(session?.token),
       isBootstrapping,
+
       async login({ email, password }) {
         const response = await apiClient.post('/auth/login', {
           email,
           password
         });
+
         const payload = persistSession({
           token: response.data.data.token,
           user: response.data.data.user
         });
+
         setSession(payload);
+
         return response.data;
       },
-      async loginWithGoogle({ idToken, role = 'patient' }) {
+
+      async loginWithGoogle({ accessToken, idToken, code, role = 'patient' }) {
         const response = await apiClient.post('/auth/oauth/google', {
+          accessToken,
           idToken,
+          code,
           role
         });
+
         const data = response.data?.data;
 
         if (data?.token && data?.user) {
@@ -63,11 +72,13 @@ export function AuthProvider({ children }) {
             token: data.token,
             user: data.user
           });
+
           setSession(payload);
         }
 
         return response.data;
       },
+
       logout() {
         window.localStorage.removeItem(STORAGE_KEY);
         setAuthToken(null);
@@ -82,8 +93,10 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+
   if (!context) {
     throw new Error('useAuth must be used within AuthProvider');
   }
+
   return context;
 }
