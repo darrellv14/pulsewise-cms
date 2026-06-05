@@ -1,4 +1,4 @@
-import {
+﻿import {
   ArrowLeft,
   Calendar,
   Heart,
@@ -19,6 +19,7 @@ import {
 } from '../components/AsyncState.jsx';
 import { CommentThread } from '../components/CommentThread.jsx';
 import { MdxContent } from '../components/MdxContent.jsx';
+import { NotFoundPage } from './NotFoundPage.jsx';
 import {
   deleteComment,
   fetchArticleBySlug,
@@ -50,6 +51,23 @@ function buildAuthorMeta(author) {
   return { displayName, avatarUrl, role, roleLabel };
 }
 
+function isGhostArticleError(error) {
+  const status = error?.response?.status;
+  const message =
+    error?.response?.data?.message ||
+    error?.message ||
+    '';
+
+  return (
+    status === 404 ||
+    /tidak ditemukan|not found/i.test(message)
+  );
+}
+
+function getInitials(value, fallback = 'U') {
+  return (value || fallback).trim()[0]?.toUpperCase() || fallback;
+}
+
 export function ArticleDetailPage() {
   const { slug } = useParams();
   const { user } = useAuth();
@@ -73,7 +91,7 @@ export function ArticleDetailPage() {
       role: user?.role || 'patient',
       displayName: name,
       badge,
-      avatarPhoto: user?.avatarPhoto || null
+      avatarPhoto: user?.avatarPhoto || user?.avatarUrl || user?.avatar || null
     };
   }, [user]);
 
@@ -92,7 +110,7 @@ export function ArticleDetailPage() {
   });
 
   useEffect(() => {
-    if (articleQuery.error) {
+    if (articleQuery.error && !isGhostArticleError(articleQuery.error)) {
       toast.error(
         getErrorMessage(articleQuery.error, 'Detail artikel gagal dimuat.')
       );
@@ -286,6 +304,10 @@ export function ArticleDetailPage() {
     );
   }
 
+  if (articleQuery.isError && isGhostArticleError(articleQuery.error)) {
+    return <NotFoundPage />;
+  }
+
   if (articleQuery.isError) {
     return (
       <div className="p-8">
@@ -468,8 +490,16 @@ export function ArticleDetailPage() {
 
         <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
           <div className="flex gap-4">
-            <div className="w-10 h-10 rounded-full bg-pulse text-white flex items-center justify-center font-bold text-sm shrink-0">
-              {(user?.username || user?.firstName || 'A')[0].toUpperCase()}
+            <div className="w-10 h-10 rounded-full overflow-hidden bg-pulse text-white flex items-center justify-center font-bold text-sm shrink-0">
+              {currentAuthor.avatarPhoto ? (
+                <img
+                  src={currentAuthor.avatarPhoto}
+                  alt={currentAuthor.displayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                getInitials(user?.username || user?.firstName || 'A', 'A')
+              )}
             </div>
             <div className="flex-1 space-y-3">
               <textarea

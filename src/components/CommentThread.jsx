@@ -1,5 +1,13 @@
-import { MessageSquareReply, Pencil, Trash2, ShieldAlert } from 'lucide-react';
+﻿import { MessageSquareReply, Pencil, Trash2, ShieldAlert, User } from 'lucide-react';
 import { useState } from 'react';
+
+function resolveAvatar(author) {
+  return author?.avatarPhoto || author?.avatarUrl || author?.avatar || null;
+}
+
+function getInitials(value, fallback = 'U') {
+  return (value || fallback).trim()[0]?.toUpperCase() || fallback;
+}
 
 export function CommentThread({
   comments,
@@ -38,14 +46,22 @@ function CommentCard({
   const [draftReply, setDraftReply] = useState('');
   const [draftEdit, setDraftEdit] = useState(comment.content);
   const [mode, setMode] = useState(null);
+  const avatarUrl = resolveAvatar(comment.author);
 
   return (
     <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 sm:p-5">
-      {/* Head */}
       <div className="flex items-start justify-between gap-4 mb-2">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-pulse text-white flex items-center justify-center font-bold text-xs shrink-0">
-            {(comment.author?.displayName || 'U')[0].toUpperCase()}
+          <div className="w-8 h-8 rounded-full overflow-hidden bg-pulse text-white flex items-center justify-center font-bold text-xs shrink-0">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={comment.author?.displayName || 'User'}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              getInitials(comment.author?.displayName, 'U')
+            )}
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -68,7 +84,6 @@ function CommentCard({
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-1.5 opacity-70 hover:opacity-100 transition-opacity">
           <button
             title="Balas"
@@ -109,7 +124,6 @@ function CommentCard({
 
       <p className="text-sm text-slate-700 ml-11 mb-3">{comment.content}</p>
 
-      {/* Reply Form */}
       {mode === 'reply' && (
         <div className="ml-11 mt-3 mb-4 space-y-2">
           <textarea
@@ -140,7 +154,6 @@ function CommentCard({
         </div>
       )}
 
-      {/* Edit Form */}
       {mode === 'edit' && (
         <div className="ml-11 mt-3 mb-4 space-y-2">
           <textarea
@@ -172,33 +185,51 @@ function CommentCard({
         </div>
       )}
 
-      {/* Nested Replies */}
       {comment.replies?.length > 0 && (
         <div className="ml-11 mt-4 space-y-3 relative before:absolute before:-left-5 before:top-4 before:bottom-6 before:w-px before:bg-slate-200">
-          {comment.replies.map((reply) => (
-            <div
-              key={reply.commentId}
-              className="relative before:absolute before:-left-5 before:top-4 before:w-4 before:h-px before:bg-slate-200"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-sm text-slate-800">
-                  {reply.author?.displayName || 'User'}
-                </span>
-                {(reply.author?.badge || reply.author?.role) && (
-                  <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-200 text-slate-500 uppercase tracking-widest bg-white">
-                    {reply.author.badge || reply.author.role}
-                  </span>
-                )}
-                <span className="text-[10px] text-slate-400 ml-auto">
-                  {new Date(reply.createdAt).toLocaleDateString('id-ID', {
-                    day: 'numeric',
-                    month: 'short'
-                  })}
-                </span>
+          {comment.replies.map((reply) => {
+            const replyAvatarUrl = resolveAvatar(reply.author);
+
+            return (
+              <div
+                key={reply.commentId}
+                className="relative before:absolute before:-left-5 before:top-4 before:w-4 before:h-px before:bg-slate-200"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 h-8 w-8 shrink-0 rounded-full overflow-hidden bg-slate-200 text-slate-500 flex items-center justify-center">
+                    {replyAvatarUrl ? (
+                      <img
+                        src={replyAvatarUrl}
+                        alt={reply.author?.displayName || 'User'}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <User size={14} />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-sm text-slate-800">
+                        {reply.author?.displayName || 'User'}
+                      </span>
+                      {(reply.author?.badge || reply.author?.role) && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded border border-slate-200 text-slate-500 uppercase tracking-widest bg-white">
+                          {reply.author.badge || reply.author.role}
+                        </span>
+                      )}
+                      <span className="text-[10px] text-slate-400 ml-auto">
+                        {new Date(reply.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short'
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-600">{reply.content}</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-slate-600">{reply.content}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

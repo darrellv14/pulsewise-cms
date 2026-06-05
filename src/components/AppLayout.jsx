@@ -23,6 +23,10 @@ const navItems = [
   { to: '/my-articles', label: 'Artikel Saya', icon: FilePenLine }
 ];
 
+function resolveUserAvatar(user) {
+  return user?.avatarPhoto || user?.avatarUrl || user?.avatar || null;
+}
+
 export function AppLayout() {
   const { logout, user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -30,6 +34,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const userAvatar = resolveUserAvatar(user);
 
   useEffect(() => {
     if (location.pathname === '/articles') {
@@ -158,8 +163,16 @@ export function AppLayout() {
 
         <div className="p-4 border-t border-slate-200">
           <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-50 mb-3">
-            <div className="w-8 h-8 rounded-full bg-pulse flex items-center justify-center text-white font-bold text-sm shrink-0">
-              {(user?.username || user?.firstName || 'P')[0].toUpperCase()}
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-pulse flex items-center justify-center text-white font-bold text-sm shrink-0">
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt={user?.username || user?.email || 'User'}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                (user?.username || user?.firstName || 'P')[0].toUpperCase()
+              )}
             </div>
             <div className="overflow-hidden flex-1">
               <p className="text-sm font-semibold text-slate-800 truncate">

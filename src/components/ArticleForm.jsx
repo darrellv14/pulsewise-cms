@@ -18,14 +18,7 @@ import {
 } from '@mdxeditor/editor';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadEducationImage } from '../lib/educationApi.js';
-import {
-  Image as ImageIcon,
-  Loader2,
-  Save,
-  Send,
-  UploadCloud,
-  X
-} from 'lucide-react';
+import { Image as ImageIcon, Loader2, Send, UploadCloud, X } from 'lucide-react';
 import { toast } from 'sonner';
 import '@mdxeditor/editor/style.css';
 
@@ -43,6 +36,36 @@ function buildInitialForm(initialValue) {
     coverImageUrl: initialValue?.coverImageUrl || '',
     coverImagePublicId: initialValue?.coverImagePublicId || ''
   };
+}
+
+function buildPayload(form, contentMarkdown) {
+  return {
+    title: form.title,
+    excerpt: form.excerpt,
+    categorySlug: form.categorySlug,
+    contentMarkdown,
+    tags: form.tags,
+    coverImageUrl: form.coverImageUrl,
+    coverImagePublicId: form.coverImagePublicId
+  };
+}
+
+function serializePayload(payload) {
+  return JSON.stringify({
+    ...payload,
+    tags: [...(payload.tags || [])]
+  });
+}
+
+function hasMeaningfulDraft(payload) {
+  return Boolean(
+    payload.title.trim() ||
+      payload.excerpt.trim() ||
+      payload.categorySlug ||
+      payload.contentMarkdown.trim() ||
+      payload.tags.length ||
+      payload.coverImageUrl
+  );
 }
 
 function validateArticleForm(
@@ -73,31 +96,94 @@ function validateArticleForm(
   return errors;
 }
 
+function getAutosaveMessage(status, lastSavedAt) {
+  if (status === 'saving') {
+    return 'Menyimpan draft otomatis...';
+  }
+
+  if (status === 'error') {
+    return 'Autosave gagal. Perubahan akan dicoba lagi.';
+  }
+
+  if (status === 'saved' && lastSavedAt) {
+    return `Draft tersimpan otomatis ${lastSavedAt.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })}`;
+  }
+
+  return 'Autosave aktif';
+}
+
 export function ArticleForm({
   categories,
   tagOptions,
   initialValue,
-  onSave,
+  onAutosave,
   onSubmitReview,
-  submitLabel = 'Simpan Draft'
+  submitPending = false
 }) {
   const [form, setForm] = useState(() => buildInitialForm(initialValue));
   const latestMarkdownRef = useRef(initialValue?.contentMarkdown || '');
   const editorMarkdown = initialValue?.contentMarkdown || '';
   const [coverUploading, setCoverUploading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [tagInput, setTagInput] = useState('');
   const [errors, setErrors] = useState({});
+  const [contentVersion, setContentVersion] = useState(0);
+  const [autosaveStatus, setAutosaveStatus] = useState('idle');
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const skipAutosaveRef = useRef(true);
+  const lastSyncedRef = useRef(
+    serializePayload(buildPayload(buildInitialForm(initialValue), initialValue?.contentMarkdown || ''))
+  );
 
   useEffect(() => {
-    if (initialValue) {
-      const nextForm = buildInitialForm(initialValue);
-      setForm(nextForm);
-      latestMarkdownRef.current = nextForm.contentMarkdown;
-      setTagInput('');
-      setErrors({});
-    }
+    const nextForm = buildInitialForm(initialValue);
+    setForm(nextForm);
+    latestMarkdownRef.current = nextForm.contentMarkdown;
+    setTagInput('');
+    setErrors({});
+    setAutosaveStatus('idle');
+    skipAutosaveRef.current = true;
+    lastSyncedRef.current = serializePayload(
+      buildPayload(nextForm, nextForm.contentMarkdown)
+    );
   }, [initialValue]);
+
+  useEffect(() => {
+    if (!onAutosave) {
+      return;
+    }
+
+    if (skipAutosaveRef.current) {
+      skipAutosaveRef.current = false;
+      return;
+    }
+
+    const payload = buildPayload(form, latestMarkdownRef.current);
+    const serialized = serializePayload(payload);
+
+    if (!hasMeaningfulDraft(payload) || serialized === lastSyncedRef.current) {
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      setAutosaveStatus('saving');
+      try {
+        await onAutosave(payload);
+        lastSyncedRef.current = serialized;
+        setAutosaveStatus('saved');
+        setLastSavedAt(new Date());
+      } catch (error) {
+        setAutosaveStatus('error');
+        toast.error(
+          error?.response?.data?.message || 'Draft otomatis gagal disimpan.'
+        );
+      }
+    }, 1200);
+
+    return () => clearTimeout(timeout);
+  }, [contentVersion, form, onAutosave]);
 
   const mdxPlugins = useMemo(
     () => [
@@ -144,6 +230,7 @@ export function ArticleForm({
         coverImageUrl: upload.url,
         coverImagePublicId: upload.publicId
       }));
+      setContentVersion((current) => current + 1);
     } finally {
       setCoverUploading(false);
     }
@@ -151,6 +238,7 @@ export function ArticleForm({
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }));
+    setContentVersion((current) => current + 1);
     setErrors((current) => {
       if (!current[field]) return current;
       const next = { ...current };
@@ -167,22 +255,6 @@ export function ArticleForm({
     );
     setErrors(nextErrors);
     return nextErrors;
-  };
-
-  const handleSaveWrapper = async (event) => {
-    event.preventDefault();
-    const nextErrors = runValidation({ requireReviewReady: false });
-    if (Object.keys(nextErrors).length) {
-      toast.error('Masih ada field wajib yang belum lengkap.');
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      await onSave({ ...form, contentMarkdown: latestMarkdownRef.current });
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   const handleSubmitReview = async () => {
@@ -230,6 +302,7 @@ export function ArticleForm({
         tags: [...current.tags, normalized]
       };
     });
+    setContentVersion((current) => current + 1);
     setTagInput('');
   };
 
@@ -238,6 +311,7 @@ export function ArticleForm({
       ...current,
       tags: current.tags.filter((tag) => tag !== tagToRemove)
     }));
+    setContentVersion((current) => current + 1);
   };
 
   const handleTagKeyDown = (event) => {
@@ -258,38 +332,26 @@ export function ArticleForm({
       <div className="flex items-center justify-between p-4 px-6 border-b border-slate-100 bg-white sticky top-16 z-20">
         <div className="flex items-center gap-3">
           <div
-            className="w-2.5 h-2.5 rounded-full bg-slate-300"
-            title="Draft"
+            className={`w-2.5 h-2.5 rounded-full ${autosaveStatus === 'error' ? 'bg-red-400' : autosaveStatus === 'saving' ? 'bg-amber-400' : 'bg-emerald-400'}`}
+            title="Autosave"
           ></div>
           <span className="text-sm font-medium text-slate-500">
-            {initialValue?.status === 'published'
-              ? 'Published'
-              : initialValue?.status === 'pending_review'
-                ? 'Menunggu Review'
-                : 'Draft Tersimpan'}
+            {getAutosaveMessage(autosaveStatus, lastSavedAt)}
           </span>
         </div>
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={handleSaveWrapper}
-            disabled={isSaving}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-slate-700 bg-slate-100 hover:bg-slate-200 font-medium text-sm transition-colors"
+            onClick={handleSubmitReview}
+            disabled={submitPending || coverUploading || autosaveStatus === 'saving'}
+            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-white bg-pulse hover:bg-pulse-dark font-medium text-sm transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            {isSaving ? (
+            {submitPending ? (
               <Loader2 size={16} className="animate-spin" />
             ) : (
-              <Save size={16} />
+              <Send size={16} className="rotate-45 -mt-1" />
             )}
-            {submitLabel}
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmitReview}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-white bg-pulse hover:bg-pulse-dark font-medium text-sm transition-colors shadow-sm"
-          >
-            <Send size={16} className="rotate-45 -mt-1" />
-            Ajukan Review
+            {submitPending ? 'Mengirim...' : 'Ajukan Review'}
           </button>
         </div>
       </div>
@@ -438,14 +500,14 @@ export function ArticleForm({
             </div>
             {tagOptions?.length ? (
               <div className="flex flex-wrap gap-2 pt-1">
-                {tagOptions.slice(0, 8).map((tag) => (
+                {tagOptions.slice(0, 5).map((tag) => (
                   <button
                     key={tag.tagId}
                     type="button"
                     onClick={() => addTag(tag.slug)}
                     className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-500 hover:border-pulse/30 hover:text-pulse transition-colors"
                   >
-                    #{tag.slug}
+                    #{tag.name || tag.slug}
                   </button>
                 ))}
               </div>
@@ -501,6 +563,7 @@ export function ArticleForm({
               markdown={editorMarkdown}
               onChange={(markdown) => {
                 latestMarkdownRef.current = markdown;
+                setContentVersion((current) => current + 1);
                 setErrors((current) => {
                   if (!current.contentMarkdown) return current;
                   const next = { ...current };
