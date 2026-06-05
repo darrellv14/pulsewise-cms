@@ -1,9 +1,9 @@
+import { useGoogleLogin } from '@react-oauth/google';
 import { HeartPulse, Loader2, Lock, Mail } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { GOOGLE_CLIENT_ID } from '../config.js';
 
 function GoogleMark() {
   return (
@@ -28,153 +28,144 @@ function GoogleMark() {
   );
 }
 
+function GoogleLoginButton({ disabled, loading, onClick }) {
+  return (
+    <button
+      type="button"
+      disabled={disabled || loading}
+      onClick={onClick}
+      className="
+        group relative flex h-12 w-full items-center justify-center gap-3
+        overflow-hidden rounded-2xl border border-slate-200 bg-white px-4
+        text-sm font-bold text-slate-700 shadow-sm transition-all duration-200
+        hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 hover:shadow-md
+        active:translate-y-0 active:shadow-sm
+        disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0
+      "
+    >
+      <span className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-slate-200 to-transparent" />
+
+      {loading ? (
+        <>
+          <Loader2 size={18} className="animate-spin text-slate-500" />
+          <span>Memverifikasi...</span>
+        </>
+      ) : (
+        <>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 ring-1 ring-slate-200 transition group-hover:bg-white">
+            <GoogleMark />
+          </span>
+          <span>Masuk dengan Google</span>
+        </>
+      )}
+    </button>
+  );
+}
+
 export function LoginPage() {
   const { login, loginWithGoogle, isAuthenticated } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
-  const [googleReady, setGoogleReady] = useState(false);
   const [error, setError] = useState('');
-  const googleButtonRef = useRef(null);
 
-  const handleGoogleCredential = useCallback(
-    async (response) => {
-      if (!response?.credential) {
-        toast.error('Google tidak mengirim token login yang valid.');
-        return;
-      }
-
-      setGoogleSubmitting(true);
-      setError('');
-
-      try {
-        const result = await loginWithGoogle({
-          idToken: response.credential,
-          role: 'patient'
-        });
-        const nextStep = result?.data?.nextStep;
-
-        if (nextStep === 'COMPLETE_REGISTRATION') {
-          const message =
-            'Akun Google ini belum siap masuk ke CMS. Selesaikan onboarding akun PulseWise terlebih dahulu.';
-          setError(message);
-          toast.error(message);
-          return;
-        }
-
-        if (nextStep === 'VERIFY_OTP') {
-          const message =
-            'Akun ini masih menunggu verifikasi OTP. Selesaikan verifikasi dulu di aplikasi PulseWise.';
-          setError(message);
-          toast.error(message);
-          return;
-        }
-
-        toast.success('Berhasil masuk dengan akun Google.');
-      } catch (loginError) {
-        const message =
-          loginError?.response?.data?.message ||
-          'Login Google gagal. Pastikan akun ini memang sudah terhubung ke PulseWise.';
-        setError(message);
-        toast.error(message);
-      } finally {
-        setGoogleSubmitting(false);
-      }
-    },
-    [loginWithGoogle]
-  );
-
-  const renderGoogleButton = useCallback(() => {
-    if (
-      !window.google?.accounts?.id ||
-      !googleButtonRef.current ||
-      !GOOGLE_CLIENT_ID
-    ) {
+  const handleGoogleSuccess = async (tokenResponse) => {
+    if (!tokenResponse?.access_token) {
+      const message = 'Google tidak mengirim access token yang valid.';
+      setError(message);
+      toast.error(message);
+      setGoogleSubmitting(false);
       return;
     }
 
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleGoogleCredential,
-      auto_select: false,
-      cancel_on_tap_outside: true,
-      locale: 'id',
-      ux_mode: 'popup',
-      use_fedcm_for_prompt: true
-    });
+    setError('');
 
-    googleButtonRef.current.innerHTML = '';
-    window.google.accounts.id.renderButton(googleButtonRef.current, {
-      theme: 'outline',
-      size: 'large',
-      text: 'signin_with',
-      shape: 'rectangular',
-      logo_alignment: 'left',
-      width: googleButtonRef.current.offsetWidth || 320,
-      use_fedcm_for_button: true
-    });
-    setGoogleReady(true);
-  }, [handleGoogleCredential]);
+    try {
+      const result = await loginWithGoogle({
+        accessToken: tokenResponse.access_token,
+        role: 'patient'
+      });
 
-  useEffect(() => {
-    if (!GOOGLE_CLIENT_ID) {
-      setError('Google Client ID belum dikonfigurasi di CMS.');
-      return undefined;
+      const nextStep = result?.data?.nextStep;
+
+      if (nextStep === 'COMPLETE_REGISTRATION') {
+        const message =
+          'Akun Google ini belum siap masuk ke CMS. Selesaikan onboarding akun PulseWise terlebih dahulu.';
+        setError(message);
+        toast.error(message);
+        return;
+      }
+
+      if (nextStep === 'VERIFY_OTP') {
+        const message =
+          'Akun ini masih menunggu verifikasi OTP. Selesaikan verifikasi dulu di aplikasi PulseWise.';
+        setError(message);
+        toast.error(message);
+        return;
+      }
+
+      toast.success('Berhasil masuk dengan akun Google.');
+    } catch (loginError) {
+      const message =
+        loginError?.response?.data?.message ||
+        'Login Google gagal. Pastikan akun ini memang sudah terhubung ke PulseWise.';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setGoogleSubmitting(false);
     }
+  };
 
-    if (window.google?.accounts?.id) {
-      renderGoogleButton();
-      return undefined;
+  const startGoogleLogin = useGoogleLogin({
+    flow: 'implicit',
+    ux_mode: 'popup',
+    scope: 'openid email profile',
+    onSuccess: handleGoogleSuccess,
+    onError: () => {
+      setGoogleSubmitting(false);
+      const message = 'Login Google dibatalkan atau gagal dibuka.';
+      setError(message);
+      toast.error(message);
     }
-
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => renderGoogleButton();
-    script.onerror = () => {
-      setError('Gagal memuat Google Sign-In. Coba refresh halaman lagi.');
-    };
-    document.head.appendChild(script);
-
-    return () => {
-      script.remove();
-    };
-  }, [renderGoogleButton]);
+  });
 
   if (isAuthenticated) {
     return <Navigate to="/articles" replace />;
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-      <div className="max-w-200 w-full bg-white rounded-3xl shadow-xl border border-slate-100 flex flex-col md:flex-row overflow-hidden">
-        <div className="md:w-5/12 bg-linear-to-br from-pulse to-pulse-dark p-10 text-white flex flex-col justify-between relative overflow-hidden">
-          <div className="relative z-10 flex items-center gap-3 mb-12">
+    <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
+      <div className="flex w-full max-w-200 flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl md:flex-row">
+        <div className="relative flex flex-col justify-between overflow-hidden bg-linear-to-br from-pulse to-pulse-dark p-10 text-white md:w-5/12">
+          <div className="relative z-10 mb-12 flex items-center gap-3">
             <HeartPulse size={32} />
-            <h1 className="font-bold text-2xl tracking-tight">PulseWise</h1>
+            <h1 className="text-2xl font-bold tracking-tight">PulseWise</h1>
           </div>
+
           <div className="relative z-10">
-            <h2 className="text-3xl font-extrabold mb-4 leading-tight">
+            <h2 className="mb-4 text-3xl font-extrabold leading-tight">
               Editorial workspace untuk edukasi.
             </h2>
-            <p className="text-pulse-100 text-sm leading-relaxed">
+            <p className="text-sm leading-relaxed text-pulse-100">
               Tulis artikel, ajukan review, moderasi konten, dan kelola cover
               image dalam satu panel kerja terpadu.
             </p>
           </div>
-          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+
+          <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 -translate-x-1/2 translate-y-1/2 rounded-full bg-black/10 blur-2xl" />
         </div>
 
-        <div className="md:w-7/12 p-8 md:p-12">
-          <div className="max-w-sm mx-auto">
+        <div className="p-8 md:w-7/12 md:p-12">
+          <div className="mx-auto max-w-sm">
             <div className="mb-8">
               <h3 className="text-2xl font-bold text-slate-900">
                 Masuk ke CMS
               </h3>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="mt-1 text-sm text-slate-500">
                 Gunakan akun PulseWise Anda.
               </p>
             </div>
@@ -185,6 +176,7 @@ export function LoginPage() {
                 event.preventDefault();
                 setSubmitting(true);
                 setError('');
+
                 try {
                   await login({ email, password });
                   toast.success('Berhasil masuk ke PulseWise CMS.');
@@ -214,7 +206,7 @@ export function LoginPage() {
                     type="email"
                     required
                     placeholder="nama@email.com"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-slate-800 transition-all outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10"
                   />
                 </div>
               </div>
@@ -234,13 +226,13 @@ export function LoginPage() {
                     type="password"
                     required
                     placeholder="********"
-                    className="w-full bg-slate-50 border border-slate-200 focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-slate-800 transition-all outline-none"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 font-medium">
+                <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
                   {error}
                 </div>
               )}
@@ -248,11 +240,12 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={submitting || googleSubmitting || !email || !password}
-                className="w-full bg-pulse hover:bg-pulse-dark text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-pulse py-3.5 font-bold text-white shadow-sm transition-colors hover:bg-pulse-dark disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {submitting ? (
                   <>
-                    <Loader2 size={18} className="animate-spin" /> Memproses...
+                    <Loader2 size={18} className="animate-spin" />
+                    Memproses...
                   </>
                 ) : (
                   'Masuk Sekarang'
@@ -266,24 +259,22 @@ export function LoginPage() {
               <span className="h-px flex-1 bg-slate-200" />
             </div>
 
-            <div className="relative min-h-11 w-full">
-              <div
-                ref={googleButtonRef}
-                className="min-h-11 w-full overflow-hidden rounded-xl [&>div]:w-full"
-              />
-              {!googleReady && (
-                <div className="absolute inset-0 flex items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-600 shadow-sm">
-                  <GoogleMark />
-                  Masuk Dengan Google
-                </div>
-              )}
-              {googleSubmitting && (
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-white/80 text-sm font-semibold text-slate-500 backdrop-blur-xs">
-                  <Loader2 size={16} className="animate-spin" />{' '}
-                  Memverifikasi...
-                </div>
-              )}
-            </div>
+            <GoogleLoginButton
+              loading={googleSubmitting}
+              disabled={submitting}
+              onClick={() => {
+                setError('');
+                setGoogleSubmitting(true);
+
+                /*
+                  Penting:
+                  startGoogleLogin() harus dipanggil langsung dari onClick.
+                  Jangan taruh await, setTimeout, atau trigger click via ref.
+                  Itu yang sering bikin popup dianggap blocked.
+                */
+                startGoogleLogin();
+              }}
+            />
           </div>
         </div>
       </div>
