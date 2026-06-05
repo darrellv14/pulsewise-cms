@@ -1,12 +1,14 @@
-﻿import {
+import {
+  ArrowLeft,
+  Calendar,
   Heart,
   MessageCircle,
-  Star,
-  Calendar,
   ShieldCheck,
+  Star,
   User
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthContext.jsx';
@@ -15,6 +17,8 @@ import {
   ErrorState,
   InlineLoader
 } from '../components/AsyncState.jsx';
+import { CommentThread } from '../components/CommentThread.jsx';
+import { MdxContent } from '../components/MdxContent.jsx';
 import {
   deleteComment,
   fetchArticleBySlug,
@@ -25,10 +29,7 @@ import {
   toggleLike,
   updateComment
 } from '../lib/educationApi.js';
-import { CommentThread } from '../components/CommentThread.jsx';
-import { MdxContent } from '../components/MdxContent.jsx';
 import { educationKeys } from '../lib/queryKeys.js';
-import { useParams } from 'react-router-dom';
 
 function getErrorMessage(error, fallback) {
   return error?.response?.data?.message || fallback;
@@ -320,7 +321,17 @@ export function ArticleDetailPage() {
 
   return (
     <div className="max-w-3xl mx-auto pb-24 px-4 sm:px-6">
-      <article className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8 mt-8">
+      <div className="mt-8 mb-4">
+        <Link
+          to="/articles"
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
+        >
+          <ArrowLeft size={17} />
+          Kembali ke Beranda Edukasi
+        </Link>
+      </div>
+
+      <article className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
         {article.coverImageUrl && (
           <div className="w-full aspect-21/9 sm:h-96 relative">
             <img
@@ -402,8 +413,7 @@ export function ArticleDetailPage() {
                     key={tag.slug}
                     className="text-sm bg-slate-100 text-slate-600 px-3 py-1 rounded-full font-medium"
                   >
-                    {' '}
-                    # {tag.name}{' '}
+                    #{tag.name}
                   </span>
                 ))}
               </div>

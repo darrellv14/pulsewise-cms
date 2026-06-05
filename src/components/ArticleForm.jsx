@@ -19,24 +19,18 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadEducationImage } from '../lib/educationApi.js';
 import {
-  UploadCloud,
   Image as ImageIcon,
-  Send,
-  Save,
   Loader2,
+  Save,
+  Send,
+  UploadCloud,
   X
 } from 'lucide-react';
+import { toast } from 'sonner';
 import '@mdxeditor/editor/style.css';
 
-export function ArticleForm({
-  categories,
-  tagOptions,
-  initialValue,
-  onSave,
-  onSubmitReview,
-  submitLabel = 'Simpan Draft'
-}) {
-  const [form, setForm] = useState(() => ({
+function buildInitialForm(initialValue) {
+  return {
     title: initialValue?.title || '',
     excerpt: initialValue?.excerpt || '',
     categorySlug:
@@ -48,31 +42,60 @@ export function ArticleForm({
       [],
     coverImageUrl: initialValue?.coverImageUrl || '',
     coverImagePublicId: initialValue?.coverImagePublicId || ''
-  }));
+  };
+}
+
+function validateArticleForm(
+  form,
+  contentMarkdown,
+  { requireReviewReady = false } = {}
+) {
+  const errors = {};
+
+  if (!form.title.trim()) {
+    errors.title = 'Judul artikel masih kosong.';
+  } else if (form.title.trim().length < 3) {
+    errors.title = 'Judul minimal 3 karakter.';
+  }
+
+  if (requireReviewReady && !form.categorySlug) {
+    errors.categorySlug = 'Pilih kategori sebelum artikel diajukan.';
+  }
+
+  if (requireReviewReady && !form.excerpt.trim()) {
+    errors.excerpt = 'Ringkasan artikel masih kosong.';
+  }
+
+  if (!contentMarkdown.trim()) {
+    errors.contentMarkdown = 'Isi artikel masih kosong.';
+  }
+
+  return errors;
+}
+
+export function ArticleForm({
+  categories,
+  tagOptions,
+  initialValue,
+  onSave,
+  onSubmitReview,
+  submitLabel = 'Simpan Draft'
+}) {
+  const [form, setForm] = useState(() => buildInitialForm(initialValue));
   const latestMarkdownRef = useRef(initialValue?.contentMarkdown || '');
   const editorMarkdown = initialValue?.contentMarkdown || '';
   const [coverUploading, setCoverUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [tagInput, setTagInput] = useState('');
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (initialValue) {
-      const nextMarkdown = initialValue.contentMarkdown || '';
-      setForm({
-        title: initialValue.title || '',
-        excerpt: initialValue.excerpt || '',
-        categorySlug:
-          initialValue.category?.slug || initialValue.categorySlug || '',
-        contentMarkdown: nextMarkdown,
-        tags:
-          initialValue.tags?.map((tag) => tag.slug) ||
-          initialValue.tagSlugs ||
-          [],
-        coverImageUrl: initialValue.coverImageUrl || '',
-        coverImagePublicId: initialValue.coverImagePublicId || ''
-      });
-      latestMarkdownRef.current = nextMarkdown;
+      const nextForm = buildInitialForm(initialValue);
+      setForm(nextForm);
+      latestMarkdownRef.current = nextForm.contentMarkdown;
       setTagInput('');
+      setErrors({});
     }
   }, [initialValue]);
 
@@ -126,14 +149,53 @@ export function ArticleForm({
     }
   }
 
-  const handleSaveWrapper = async (e) => {
-    e.preventDefault();
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => {
+      if (!current[field]) return current;
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const runValidation = (options) => {
+    const nextErrors = validateArticleForm(
+      form,
+      latestMarkdownRef.current,
+      options
+    );
+    setErrors(nextErrors);
+    return nextErrors;
+  };
+
+  const handleSaveWrapper = async (event) => {
+    event.preventDefault();
+    const nextErrors = runValidation({ requireReviewReady: false });
+    if (Object.keys(nextErrors).length) {
+      toast.error('Masih ada field wajib yang belum lengkap.');
+      return;
+    }
+
     setIsSaving(true);
     try {
       await onSave({ ...form, contentMarkdown: latestMarkdownRef.current });
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSubmitReview = async () => {
+    const nextErrors = runValidation({ requireReviewReady: true });
+    if (Object.keys(nextErrors).length) {
+      toast.error('Lengkapi dulu artikel sebelum diajukan ke admin.');
+      return;
+    }
+
+    await onSubmitReview?.({
+      ...form,
+      contentMarkdown: latestMarkdownRef.current
+    });
   };
 
   const normalizeTagValue = (rawValue) =>
@@ -193,7 +255,6 @@ export function ArticleForm({
 
   return (
     <div className="flex flex-col relative">
-      {/* Top Action Bar */}
       <div className="flex items-center justify-between p-4 px-6 border-b border-slate-100 bg-white sticky top-16 z-20">
         <div className="flex items-center gap-3">
           <div
@@ -224,12 +285,7 @@ export function ArticleForm({
           </button>
           <button
             type="button"
-            onClick={() =>
-              onSubmitReview?.({
-                ...form,
-                contentMarkdown: latestMarkdownRef.current
-              })
-            }
+            onClick={handleSubmitReview}
             className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-white bg-pulse hover:bg-pulse-dark font-medium text-sm transition-colors shadow-sm"
           >
             <Send size={16} className="rotate-45 -mt-1" />
@@ -239,7 +295,19 @@ export function ArticleForm({
       </div>
 
       <div className="p-6 md:p-10 max-w-3xl mx-auto w-full space-y-8">
-        {/* Cover Image */}
+        {Object.keys(errors).length ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+            <p className="font-semibold">
+              Masih ada bagian yang perlu dilengkapi:
+            </p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              {Object.values(errors).map((message) => (
+                <li key={message}>{message}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         <div className="space-y-3">
           <label className="block text-sm font-semibold text-slate-700">
             Cover Artikel (16:9)
@@ -290,29 +358,35 @@ export function ArticleForm({
           </div>
         </div>
 
-        {/* Title Input */}
         <div>
+          <label className="mb-2 block text-xs font-bold uppercase tracking-wide text-slate-400">
+            Judul artikel *
+          </label>
           <input
             type="text"
             value={form.title}
-            onChange={(e) => setForm((c) => ({ ...c, title: e.target.value }))}
+            onChange={(event) => updateField('title', event.target.value)}
             placeholder="Judul Artikel..."
-            className="w-full text-4xl md:text-5xl font-bold text-slate-800 placeholder:text-slate-300 focus:outline-none bg-transparent"
+            className={`w-full rounded-3xl border bg-white px-5 py-5 text-4xl font-bold text-slate-800 placeholder:text-slate-300 focus:outline-none ${errors.title ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200 focus:border-pulse focus:ring-4 focus:ring-pulse/10'}`}
           />
+          {errors.title ? (
+            <p className="mt-2 text-sm font-medium text-red-600">
+              {errors.title}
+            </p>
+          ) : null}
         </div>
 
-        {/* Metadata row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-2xl border border-slate-100">
           <div className="space-y-2">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Kategori
+              Kategori *
             </label>
             <select
               value={form.categorySlug}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, categorySlug: e.target.value }))
+              onChange={(event) =>
+                updateField('categorySlug', event.target.value)
               }
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-pulse/20 focus:border-pulse"
+              className={`w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none ${errors.categorySlug ? 'border border-red-300 bg-red-50 text-red-700 ring-4 ring-red-100' : 'border border-slate-200 bg-white text-slate-700 focus:border-pulse focus:ring-2 focus:ring-pulse/20'}`}
             >
               <option value="">-- Pilih Kategori --</option>
               {categories.map((category) => (
@@ -321,6 +395,11 @@ export function ArticleForm({
                 </option>
               ))}
             </select>
+            {errors.categorySlug ? (
+              <p className="text-sm font-medium text-red-600">
+                {errors.categorySlug}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -346,7 +425,7 @@ export function ArticleForm({
               ))}
               <input
                 value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
+                onChange={(event) => setTagInput(event.target.value)}
                 onKeyDown={handleTagKeyDown}
                 onBlur={() => addTag(tagInput)}
                 placeholder={
@@ -375,33 +454,76 @@ export function ArticleForm({
 
           <div className="md:col-span-2 space-y-2">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Ringkasan (Tampil di Feed)
+              Ringkasan (Tampil di Feed) *
             </label>
             <textarea
               rows={2}
               maxLength={150}
               value={form.excerpt}
-              onChange={(e) =>
-                setForm((c) => ({ ...c, excerpt: e.target.value }))
-              }
+              onChange={(event) => updateField('excerpt', event.target.value)}
               placeholder="Ringkasan singkat maksimal 150 karakter..."
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-pulse/20 focus:border-pulse resize-none"
+              className={`w-full rounded-xl px-4 py-3 text-sm resize-none focus:outline-none ${errors.excerpt ? 'border border-red-300 bg-red-50 text-red-700 ring-4 ring-red-100' : 'border border-slate-200 bg-white text-slate-700 focus:border-pulse focus:ring-2 focus:ring-pulse/20'}`}
             />
+            <div className="flex items-center justify-between gap-3">
+              {errors.excerpt ? (
+                <p className="text-sm font-medium text-red-600">
+                  {errors.excerpt}
+                </p>
+              ) : (
+                <span className="text-xs text-slate-400">
+                  Ringkasan membantu admin dan pembaca memahami isi artikel
+                  lebih cepat.
+                </span>
+              )}
+              <span className="text-xs font-medium text-slate-400">
+                {form.excerpt.length}/150
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* Editor Body */}
-        <div className="prose prose-pulse prose-slate max-w-none md:prose-lg mt-8 border-t border-slate-100 pt-8">
-          <MDXEditor
-            key={initialValue?.articleId || 'new-article'}
-            markdown={editorMarkdown}
-            onChange={(markdown) => {
-              latestMarkdownRef.current = markdown;
-            }}
-            plugins={mdxPlugins}
-            contentEditableClassName="min-h-[400px] outline-none"
-            className="mdx-editor-custom"
-          />
+        <div className="border-t border-slate-100 pt-8">
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                Isi Artikel *
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Minimal isi konten utama artikel sebelum disimpan atau diajukan.
+              </p>
+            </div>
+          </div>
+          <div
+            className={`rounded-[28px] border bg-white p-3 ${errors.contentMarkdown ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200'}`}
+          >
+            <MDXEditor
+              key={initialValue?.articleId || 'new-article'}
+              markdown={editorMarkdown}
+              onChange={(markdown) => {
+                latestMarkdownRef.current = markdown;
+                setErrors((current) => {
+                  if (!current.contentMarkdown) return current;
+                  const next = { ...current };
+                  delete next.contentMarkdown;
+                  return next;
+                });
+              }}
+              plugins={mdxPlugins}
+              contentEditableClassName="min-h-[400px] outline-none"
+              className="mdx-editor-custom"
+            />
+          </div>
+          {errors.contentMarkdown ? (
+            <p className="mt-2 text-sm font-medium text-red-600">
+              {errors.contentMarkdown}
+            </p>
+          ) : null}
+          {initialValue?.status === 'published' ? (
+            <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+              Perubahan artikel published akan dikirim sebagai revisi dan
+              menunggu review admin sebelum live.
+            </p>
+          ) : null}
         </div>
       </div>
     </div>
