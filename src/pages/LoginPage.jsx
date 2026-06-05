@@ -100,7 +100,8 @@ export function LoginPage() {
       auto_select: false,
       cancel_on_tap_outside: true,
       locale: 'id',
-      ux_mode: 'popup'
+      ux_mode: 'popup',
+      use_fedcm_for_prompt: true
     });
 
     googleButtonRef.current.innerHTML = '';
@@ -110,7 +111,8 @@ export function LoginPage() {
       text: 'signin_with',
       shape: 'rectangular',
       logo_alignment: 'left',
-      width: googleButtonRef.current.offsetWidth || 320
+      width: googleButtonRef.current.offsetWidth || 320,
+      use_fedcm_for_button: true
     });
     setGoogleReady(true);
   }, [handleGoogleCredential]);
