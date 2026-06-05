@@ -35,7 +35,6 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [googleReady, setGoogleReady] = useState(false);
-  const [googleError, setGoogleError] = useState('');
   const [error, setError] = useState('');
   const googleButtonRef = useRef(null);
 
@@ -47,7 +46,6 @@ export function LoginPage() {
       }
 
       setGoogleSubmitting(true);
-      setGoogleError('');
       setError('');
 
       try {
@@ -58,16 +56,18 @@ export function LoginPage() {
         const nextStep = result?.data?.nextStep;
 
         if (nextStep === 'COMPLETE_REGISTRATION') {
-          toast.error(
-            'Akun Google ini belum siap masuk ke CMS. Selesaikan onboarding akun PulseWise terlebih dahulu.'
-          );
+          const message =
+            'Akun Google ini belum siap masuk ke CMS. Selesaikan onboarding akun PulseWise terlebih dahulu.';
+          setError(message);
+          toast.error(message);
           return;
         }
 
         if (nextStep === 'VERIFY_OTP') {
-          toast.error(
-            'Akun ini masih menunggu verifikasi OTP. Selesaikan verifikasi dulu di aplikasi PulseWise.'
-          );
+          const message =
+            'Akun ini masih menunggu verifikasi OTP. Selesaikan verifikasi dulu di aplikasi PulseWise.';
+          setError(message);
+          toast.error(message);
           return;
         }
 
@@ -76,7 +76,7 @@ export function LoginPage() {
         const message =
           loginError?.response?.data?.message ||
           'Login Google gagal. Pastikan akun ini memang sudah terhubung ke PulseWise.';
-        setGoogleError(message);
+        setError(message);
         toast.error(message);
       } finally {
         setGoogleSubmitting(false);
@@ -99,6 +99,7 @@ export function LoginPage() {
       callback: handleGoogleCredential,
       auto_select: false,
       cancel_on_tap_outside: true,
+      locale: 'id',
       ux_mode: 'popup'
     });
 
@@ -109,14 +110,14 @@ export function LoginPage() {
       text: 'signin_with',
       shape: 'rectangular',
       logo_alignment: 'left',
-      width: googleButtonRef.current.offsetWidth || 360
+      width: googleButtonRef.current.offsetWidth || 320
     });
     setGoogleReady(true);
   }, [handleGoogleCredential]);
 
   useEffect(() => {
     if (!GOOGLE_CLIENT_ID) {
-      setGoogleError('Google Client ID belum dikonfigurasi di CMS.');
+      setError('Google Client ID belum dikonfigurasi di CMS.');
       return undefined;
     }
 
@@ -129,11 +130,9 @@ export function LoginPage() {
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = () => {
-      renderGoogleButton();
-    };
+    script.onload = () => renderGoogleButton();
     script.onerror = () => {
-      setGoogleError('Gagal memuat Google Sign-In. Coba refresh halaman lagi.');
+      setError('Gagal memuat Google Sign-In. Coba refresh halaman lagi.');
     };
     document.head.appendChild(script);
 
@@ -147,76 +146,34 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-rose-50 via-white to-amber-50 p-4 md:p-6">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-6xl overflow-hidden rounded-[32px] border border-rose-100 bg-white shadow-[0_30px_80px_rgba(15,23,42,0.10)] md:min-h-[calc(100vh-3rem)]">
-        <div className="hidden w-[44%] flex-col justify-between bg-linear-to-br from-pulse to-pulse-dark px-10 py-12 text-white md:flex">
-          <div>
-            <div className="mb-14 flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/14 ring-1 ring-white/20">
-                <HeartPulse size={24} />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-white/70">
-                  PulseWise
-                </p>
-                <h1 className="text-2xl font-bold tracking-tight">
-                  CMS Workspace
-                </h1>
-              </div>
-            </div>
-            <div className="max-w-md space-y-5">
-              <h2 className="text-4xl font-black leading-tight">
-                Kelola edukasi kesehatan dengan panel kerja yang rapi.
-              </h2>
-              <p className="text-sm leading-7 text-white/80">
-                Tulis artikel, unggah visual, ajukan review, dan moderasi semua
-                konten edukasi PulseWise dari satu tempat yang terasa tenang
-                dipakai tiap hari.
-              </p>
-            </div>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <div className="max-w-200 w-full bg-white rounded-3xl shadow-xl border border-slate-100 flex flex-col md:flex-row overflow-hidden">
+        <div className="md:w-5/12 bg-linear-to-br from-pulse to-pulse-dark p-10 text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="relative z-10 flex items-center gap-3 mb-12">
+            <HeartPulse size={32} />
+            <h1 className="font-bold text-2xl tracking-tight">PulseWise</h1>
           </div>
-
-          <div className="grid gap-3 text-sm text-white/85">
-            <div className="rounded-2xl border border-white/14 bg-white/10 px-4 py-4 backdrop-blur-xs">
-              Artikel tidak langsung tayang. Semua konten tetap melewati
-              approval admin.
-            </div>
-            <div className="rounded-2xl border border-white/14 bg-white/10 px-4 py-4 backdrop-blur-xs">
-              Akun yang login dengan Google harus sudah terhubung ke akun
-              PulseWise aktif.
-            </div>
+          <div className="relative z-10">
+            <h2 className="text-3xl font-extrabold mb-4 leading-tight">
+              Editorial workspace untuk edukasi.
+            </h2>
+            <p className="text-pulse-100 text-sm leading-relaxed">
+              Tulis artikel, ajukan review, moderasi konten, dan kelola cover
+              image dalam satu panel kerja terpadu.
+            </p>
           </div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-5 py-8 sm:px-8 md:px-12">
-          <div className="w-full max-w-md">
-            <div className="mb-8 md:hidden">
-              <div className="mb-5 flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-pulse text-white shadow-sm">
-                  <HeartPulse size={20} />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-pulse/70">
-                    PulseWise
-                  </p>
-                  <h1 className="text-xl font-bold text-slate-900">
-                    CMS Workspace
-                  </h1>
-                </div>
-              </div>
-              <p className="text-sm leading-6 text-slate-500">
-                Masuk untuk menulis, mengelola, dan meninjau artikel edukasi
-                PulseWise.
-              </p>
-            </div>
-
+        <div className="md:w-7/12 p-8 md:p-12">
+          <div className="max-w-sm mx-auto">
             <div className="mb-8">
-              <h2 className="text-3xl font-black tracking-tight text-slate-900">
+              <h3 className="text-2xl font-bold text-slate-900">
                 Masuk ke CMS
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-slate-500">
-                Gunakan akun PulseWise Anda. Email dan password tetap didukung,
-                dan akun Google bisa dipakai kalau memang sudah terhubung.
+              </h3>
+              <p className="text-slate-500 text-sm mt-1">
+                Gunakan akun PulseWise Anda.
               </p>
             </div>
 
@@ -226,26 +183,23 @@ export function LoginPage() {
                 event.preventDefault();
                 setSubmitting(true);
                 setError('');
-                setGoogleError('');
                 try {
                   await login({ email, password });
                   toast.success('Berhasil masuk ke PulseWise CMS.');
                 } catch (loginError) {
-                  setError(
+                  const message =
                     loginError?.response?.data?.message ||
-                      'Login gagal. Periksa kembali email dan password.'
-                  );
-                  toast.error(
-                    loginError?.response?.data?.message || 'Login gagal.'
-                  );
+                    'Login gagal. Periksa kembali email dan password.';
+                  setError(message);
+                  toast.error(message);
                 } finally {
                   setSubmitting(false);
                 }
               }}
             >
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">
-                  Email address
+                  Email Address
                 </label>
                 <div className="relative">
                   <Mail
@@ -258,12 +212,12 @@ export function LoginPage() {
                     type="email"
                     required
                     placeholder="nama@email.com"
-                    className="h-13 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition focus:border-pulse/35 focus:bg-white focus:ring-4 focus:ring-pulse/10"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-slate-800 transition-all outline-none"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700">
                   Password
                 </label>
@@ -277,31 +231,22 @@ export function LoginPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     type="password"
                     required
-                    placeholder="��������"
-                    className="h-13 w-full rounded-2xl border border-slate-200 bg-slate-50 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition focus:border-pulse/35 focus:bg-white focus:ring-4 focus:ring-pulse/10"
+                    placeholder="********"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10 rounded-xl pl-11 pr-4 py-3 text-sm font-medium text-slate-800 transition-all outline-none"
                   />
                 </div>
               </div>
 
-              {(error || googleError) && (
-                <div className="space-y-2">
-                  {error && (
-                    <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-                      {error}
-                    </div>
-                  )}
-                  {googleError && (
-                    <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
-                      {googleError}
-                    </div>
-                  )}
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm text-red-600 font-medium">
+                  {error}
                 </div>
               )}
 
               <button
                 type="submit"
                 disabled={submitting || googleSubmitting || !email || !password}
-                className="flex h-13 w-full items-center justify-center gap-2 rounded-2xl bg-pulse font-bold text-white shadow-sm transition hover:bg-pulse-dark disabled:cursor-not-allowed disabled:opacity-70"
+                className="w-full bg-pulse hover:bg-pulse-dark text-white font-bold py-3.5 rounded-xl transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
               >
                 {submitting ? (
                   <>
@@ -313,35 +258,27 @@ export function LoginPage() {
               </button>
             </form>
 
-            <div className="my-6 flex items-center gap-4 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-300">
+            <div className="my-5 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
               <span className="h-px flex-1 bg-slate-200" />
               <span>atau</span>
               <span className="h-px flex-1 bg-slate-200" />
             </div>
 
-            <div className="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-              <div className="mb-3 flex items-center gap-3 text-sm font-semibold text-slate-700">
-                <GoogleMark />
-                <span>Masuk dengan Google</span>
-              </div>
-              <p className="mb-4 text-sm leading-6 text-slate-500">
-                Cocok untuk akun PulseWise yang memang sudah terhubung ke
-                Google.
-              </p>
+            <div className="relative min-h-11 w-full">
               <div
                 ref={googleButtonRef}
-                className="min-h-[44px] w-full overflow-hidden rounded-xl border border-slate-200 bg-white"
+                className="min-h-11 w-full overflow-hidden rounded-xl [&>div]:w-full"
               />
-              {!googleReady && !googleError && (
-                <div className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-400">
-                  <Loader2 size={14} className="animate-spin" /> Menyiapkan
-                  tombol Google...
+              {!googleReady && (
+                <div className="absolute inset-0 flex items-center justify-center gap-3 rounded-xl border border-slate-300 bg-white text-sm font-semibold text-slate-600 shadow-sm">
+                  <GoogleMark />
+                  Masuk Dengan Google
                 </div>
               )}
               {googleSubmitting && (
-                <div className="mt-3 flex items-center gap-2 text-xs font-medium text-slate-500">
-                  <Loader2 size={14} className="animate-spin" /> Memverifikasi
-                  akun Google...
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-white/80 text-sm font-semibold text-slate-500 backdrop-blur-xs">
+                  <Loader2 size={16} className="animate-spin" />{' '}
+                  Memverifikasi...
                 </div>
               )}
             </div>
