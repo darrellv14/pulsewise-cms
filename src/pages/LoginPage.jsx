@@ -198,7 +198,7 @@ export function LoginPage() {
               <span className="h-px flex-1 bg-slate-200" />
             </div>
 
-            <div className="relative flex min-h-12 w-full items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-white px-3 py-1.5 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md">
+            <div className="relative flex min-h-12 w-full items-center justify-center overflow-hidden rounded-xl bg-white transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md">
               <div
                 className={
                   googleSubmitting ? 'pointer-events-none opacity-0' : 'w-full'
@@ -217,7 +217,7 @@ export function LoginPage() {
                   theme="outline"
                   size="large"
                   text="signin_with"
-                  shape="pill"
+                  shape="rectangular"
                   logo_alignment="left"
                   width="320"
                   locale="id"

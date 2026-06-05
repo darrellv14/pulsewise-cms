@@ -66,11 +66,19 @@ function serializePayload(payload) {
 function hasMeaningfulDraft(payload) {
   return Boolean(
     payload.title.trim() ||
-      payload.excerpt.trim() ||
-      payload.categorySlug ||
-      payload.contentMarkdown.trim() ||
-      payload.tags.length ||
-      payload.coverImageUrl
+    payload.excerpt.trim() ||
+    payload.categorySlug ||
+    payload.contentMarkdown.trim() ||
+    payload.tags.length ||
+    payload.coverImageUrl
+  );
+}
+
+function isAutosaveEligible(payload) {
+  return Boolean(
+    payload.title.trim().length >= 3 &&
+    payload.categorySlug &&
+    payload.contentMarkdown.trim().length >= 20
   );
 }
 
@@ -133,7 +141,9 @@ function UploadProgress({ label, progress, tone = 'pulse' }) {
     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
       <div className="mb-2 flex items-center justify-between gap-4">
         <span className="text-sm font-medium text-slate-700">{label}</span>
-        <span className="text-xs font-semibold text-slate-400">{progress}%</span>
+        <span className="text-xs font-semibold text-slate-400">
+          {progress}%
+        </span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-slate-100">
         <div
@@ -204,6 +214,11 @@ export function ArticleForm({
       return;
     }
 
+    if (!isAutosaveEligible(payload)) {
+      setAutosaveStatus('idle');
+      return;
+    }
+
     const timeout = setTimeout(async () => {
       setAutosaveStatus('saving');
       try {
@@ -211,11 +226,8 @@ export function ArticleForm({
         lastSyncedRef.current = serialized;
         setAutosaveStatus('saved');
         setLastSavedAt(new Date());
-      } catch (error) {
+      } catch {
         setAutosaveStatus('error');
-        toast.error(
-          error?.response?.data?.message || 'Draft otomatis gagal disimpan.'
-        );
       }
     }, 1200);
 

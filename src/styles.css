@@ -10,3 +10,64 @@
 body {
   @apply bg-slate-50 text-slate-600 font-sans;
 }
+.mdx-editor-custom .mdxeditor-toolbar {
+  border-bottom: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.mdx-editor-custom [contenteditable='true'] {
+  color: #334155;
+  line-height: 1.75;
+}
+
+.mdx-editor-custom [contenteditable='true'] h1 {
+  margin: 1.6rem 0 0.9rem;
+  color: #0f172a;
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.mdx-editor-custom [contenteditable='true'] h2 {
+  margin: 1.45rem 0 0.75rem;
+  color: #1e293b;
+  font-size: 1.75rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.mdx-editor-custom [contenteditable='true'] h3 {
+  margin: 1.25rem 0 0.65rem;
+  color: #334155;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.mdx-editor-custom [contenteditable='true'] p {
+  margin: 0.85rem 0;
+}
+
+.mdx-editor-custom [contenteditable='true'] blockquote {
+  margin: 1rem 0;
+  border-left: 4px solid #f04666;
+  border-radius: 0 12px 12px 0;
+  background: #fff1f2;
+  padding: 0.85rem 1rem;
+  color: #9f1239;
+  font-style: italic;
+}
+
+.mdx-editor-custom [contenteditable='true'] ul,
+.mdx-editor-custom [contenteditable='true'] ol {
+  margin: 0.85rem 0;
+  padding-left: 1.5rem;
+}
+
+.mdx-editor-custom [contenteditable='true'] ul {
+  list-style: disc;
+}
+
+.mdx-editor-custom [contenteditable='true'] ol {
+  list-style: decimal;
+}
