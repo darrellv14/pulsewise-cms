@@ -112,7 +112,7 @@ function getAutosaveMessage(status, lastSavedAt) {
     })}`;
   }
 
-  return 'Autosave aktif';
+  return 'Saving';
 }
 
 export function ArticleForm({
