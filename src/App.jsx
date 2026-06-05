@@ -2,11 +2,12 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext.jsx';
 import { AppLayout } from './components/AppLayout.jsx';
-import { LoginPage } from './pages/LoginPage.jsx';
-import { ArticlesPage } from './pages/ArticlesPage.jsx';
 import { ArticleDetailPage } from './pages/ArticleDetailPage.jsx';
+import { ArticlesPage } from './pages/ArticlesPage.jsx';
+import { LoginPage } from './pages/LoginPage.jsx';
 import { ModerationPage } from './pages/ModerationPage.jsx';
 import { MyArticlesPage } from './pages/MyArticlesPage.jsx';
+import { NotFoundPage } from './pages/NotFoundPage.jsx';
 
 const EditorPage = lazy(() =>
   import('./pages/EditorPage.jsx').then((module) => ({
@@ -71,7 +72,9 @@ export default function App() {
                 </AdminRoute>
               }
             />
+            <Route path="*" element={<NotFoundPage />} />
           </Route>
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
     </AuthProvider>
