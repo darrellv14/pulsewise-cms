@@ -57,11 +57,9 @@ export function AuthProvider({ children }) {
         return response.data;
       },
 
-      async loginWithGoogle({ accessToken, idToken, code, role = 'patient' }) {
+      async loginWithGoogle({ idToken, role = 'patient' }) {
         const response = await apiClient.post('/auth/oauth/google', {
-          accessToken,
           idToken,
-          code,
           role
         });
 
@@ -72,7 +70,6 @@ export function AuthProvider({ children }) {
             token: data.token,
             user: data.user
           });
-
           setSession(payload);
         }
 
