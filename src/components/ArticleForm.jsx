@@ -18,7 +18,13 @@ import {
 } from '@mdxeditor/editor';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadEducationImage } from '../lib/educationApi.js';
-import { Image as ImageIcon, Loader2, Send, UploadCloud, X } from 'lucide-react';
+import {
+  Image as ImageIcon,
+  Loader2,
+  Send,
+  UploadCloud,
+  X
+} from 'lucide-react';
 import { toast } from 'sonner';
 import '@mdxeditor/editor/style.css';
 
@@ -134,7 +140,12 @@ export function ArticleForm({
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const skipAutosaveRef = useRef(true);
   const lastSyncedRef = useRef(
-    serializePayload(buildPayload(buildInitialForm(initialValue), initialValue?.contentMarkdown || ''))
+    serializePayload(
+      buildPayload(
+        buildInitialForm(initialValue),
+        initialValue?.contentMarkdown || ''
+      )
+    )
   );
 
   useEffect(() => {
@@ -203,16 +214,16 @@ export function ArticleForm({
         toolbarContents: () => (
           <div className="flex flex-wrap items-center gap-1 p-1">
             <UndoRedo />
-            <div className="w-px h-6 bg-slate-200 mx-1" />
+            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
             <BoldItalicUnderlineToggles />
-            <div className="w-px h-6 bg-slate-200 mx-1" />
+            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
             <BlockTypeSelect />
-            <div className="w-px h-6 bg-slate-200 mx-1" />
+            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
             <ListsToggle />
-            <div className="w-px h-6 bg-slate-200 mx-1" />
+            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
             <CreateLink />
             <InsertImage />
-            <div className="flex-1" />
+            <div className="hidden sm:flex flex-1" />
             <DiffSourceToggleWrapper />
           </div>
         )
@@ -329,36 +340,40 @@ export function ArticleForm({
 
   return (
     <div className="flex flex-col relative">
-      <div className="flex items-center justify-between p-4 px-6 border-b border-slate-100 bg-white sticky top-16 z-20">
-        <div className="flex items-center gap-3">
-          <div
-            className={`w-2.5 h-2.5 rounded-full ${autosaveStatus === 'error' ? 'bg-red-400' : autosaveStatus === 'saving' ? 'bg-amber-400' : 'bg-emerald-400'}`}
-            title="Autosave"
-          ></div>
-          <span className="text-sm font-medium text-slate-500">
-            {getAutosaveMessage(autosaveStatus, lastSavedAt)}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleSubmitReview}
-            disabled={submitPending || coverUploading || autosaveStatus === 'saving'}
-            className="inline-flex items-center gap-2 px-5 py-2 rounded-xl text-white bg-pulse hover:bg-pulse-dark font-medium text-sm transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {submitPending ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Send size={16} className="rotate-45 -mt-1" />
-            )}
-            {submitPending ? 'Mengirim...' : 'Ajukan Review'}
-          </button>
+      <div className="sticky top-0 sm:top-16 z-20 border-b border-slate-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+        <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
+          <div className="flex items-start gap-3 sm:items-center min-w-0">
+            <div
+              className={`mt-1 sm:mt-0 w-2.5 h-2.5 shrink-0 rounded-full ${autosaveStatus === 'error' ? 'bg-red-400' : autosaveStatus === 'saving' ? 'bg-amber-400' : 'bg-emerald-400'}`}
+              title="Autosave"
+            ></div>
+            <span className="text-xs sm:text-sm font-medium text-slate-500 leading-5 sm:leading-normal break-words">
+              {getAutosaveMessage(autosaveStatus, lastSavedAt)}
+            </span>
+          </div>
+          <div className="w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={handleSubmitReview}
+              disabled={
+                submitPending || coverUploading || autosaveStatus === 'saving'
+              }
+              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-3 sm:px-5 sm:py-2 rounded-xl text-white bg-pulse hover:bg-pulse-dark font-medium text-sm transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+            >
+              {submitPending ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Send size={16} className="rotate-45 -mt-1" />
+              )}
+              {submitPending ? 'Mengirim...' : 'Ajukan Review'}
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="p-6 md:p-10 max-w-3xl mx-auto w-full space-y-8">
+      <div className="w-full max-w-3xl mx-auto space-y-6 px-4 py-5 sm:px-6 sm:py-6 md:px-8 md:py-10">
         {Object.keys(errors).length ? (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-800">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 sm:px-5 text-sm text-amber-800">
             <p className="font-semibold">
               Masih ada bagian yang perlu dilengkapi:
             </p>
@@ -388,7 +403,7 @@ export function ArticleForm({
               className={`w-full aspect-video rounded-2xl overflow-hidden border-2 flex flex-col items-center justify-center transition-all bg-slate-50 ${form.coverImageUrl ? 'border-transparent' : 'border-dashed border-slate-300 group-hover:border-pulse bg-slate-50 group-hover:bg-pulse/5'}`}
             >
               {coverUploading ? (
-                <div className="flex flex-col items-center text-slate-400">
+                <div className="flex flex-col items-center text-slate-400 px-4 text-center">
                   <Loader2 className="animate-spin mb-2" size={32} />
                   <span className="text-sm font-medium">Mengunggah...</span>
                 </div>
@@ -399,17 +414,17 @@ export function ArticleForm({
                     alt="Cover Preview"
                     className="w-full h-full object-cover transition-opacity group-hover:opacity-50"
                   />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    <div className="bg-white/90 px-4 py-2 rounded-lg shadow-sm text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none px-4">
+                    <div className="bg-white/90 px-4 py-2 rounded-lg shadow-sm text-sm font-semibold text-slate-700 flex items-center gap-2 text-center">
                       <UploadCloud size={18} /> Ganti Gambar
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center text-slate-400 group-hover:text-pulse transition-colors">
-                  <ImageIcon size={48} className="mb-3 opacity-50" />
+                <div className="flex flex-col items-center text-slate-400 group-hover:text-pulse transition-colors px-4 text-center">
+                  <ImageIcon size={44} className="mb-3 opacity-50" />
                   <p className="font-medium text-sm">
-                    Klik atau Drag gambar ke sini
+                    Klik atau drag gambar ke sini
                   </p>
                   <p className="text-xs mt-1">
                     Rekomendasi ukuran: 1200 x 675 px
@@ -429,7 +444,7 @@ export function ArticleForm({
             value={form.title}
             onChange={(event) => updateField('title', event.target.value)}
             placeholder="Judul Artikel..."
-            className={`w-full rounded-3xl border bg-white px-5 py-5 text-4xl font-bold text-slate-800 placeholder:text-slate-300 focus:outline-none ${errors.title ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200 focus:border-pulse focus:ring-4 focus:ring-pulse/10'}`}
+            className={`w-full rounded-2xl sm:rounded-3xl border bg-white px-4 py-4 sm:px-5 sm:py-5 text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 placeholder:text-slate-300 focus:outline-none ${errors.title ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200 focus:border-pulse focus:ring-4 focus:ring-pulse/10'}`}
           />
           {errors.title ? (
             <p className="mt-2 text-sm font-medium text-red-600">
@@ -438,8 +453,8 @@ export function ArticleForm({
           ) : null}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-2xl border border-slate-100">
-          <div className="space-y-2">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100 md:grid-cols-2">
+          <div className="space-y-2 md:col-span-1">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
               Kategori *
             </label>
@@ -448,7 +463,7 @@ export function ArticleForm({
               onChange={(event) =>
                 updateField('categorySlug', event.target.value)
               }
-              className={`w-full rounded-xl px-4 py-2.5 text-sm font-medium focus:outline-none ${errors.categorySlug ? 'border border-red-300 bg-red-50 text-red-700 ring-4 ring-red-100' : 'border border-slate-200 bg-white text-slate-700 focus:border-pulse focus:ring-2 focus:ring-pulse/20'}`}
+              className={`w-full rounded-xl px-4 py-3 text-sm font-medium focus:outline-none ${errors.categorySlug ? 'border border-red-300 bg-red-50 text-red-700 ring-4 ring-red-100' : 'border border-slate-200 bg-white text-slate-700 focus:border-pulse focus:ring-2 focus:ring-pulse/20'}`}
             >
               <option value="">-- Pilih Kategori --</option>
               {categories.map((category) => (
@@ -464,7 +479,7 @@ export function ArticleForm({
             ) : null}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 md:col-span-1">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
               Tags
             </label>
@@ -472,13 +487,13 @@ export function ArticleForm({
               {form.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-pulse/10 text-pulse px-3 py-1 text-xs font-semibold"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-pulse/10 text-pulse px-3 py-1 text-xs font-semibold max-w-full"
                 >
-                  #{tag}
+                  <span className="truncate max-w-28 sm:max-w-36">#{tag}</span>
                   <button
                     type="button"
                     onClick={() => removeTag(tag)}
-                    className="inline-flex items-center justify-center rounded-full hover:bg-pulse/15 transition-colors"
+                    className="inline-flex items-center justify-center rounded-full hover:bg-pulse/15 transition-colors shrink-0"
                     aria-label={`Hapus tag ${tag}`}
                   >
                     <X size={12} />
@@ -495,7 +510,7 @@ export function ArticleForm({
                     ? 'Tambah tag lain...'
                     : 'Ketik tag, lalu tekan koma atau Enter'
                 }
-                className="flex-1 min-w-45 bg-transparent text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                className="flex-1 min-w-0 sm:min-w-45 bg-transparent text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none"
               />
             </div>
             {tagOptions?.length ? (
@@ -514,49 +529,49 @@ export function ArticleForm({
             ) : null}
           </div>
 
-          <div className="md:col-span-2 space-y-2">
+          <div className="space-y-2 md:col-span-2">
             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider">
               Ringkasan (Tampil di Feed) *
             </label>
             <textarea
-              rows={2}
+              rows={3}
               maxLength={150}
               value={form.excerpt}
               onChange={(event) => updateField('excerpt', event.target.value)}
               placeholder="Ringkasan singkat maksimal 150 karakter..."
               className={`w-full rounded-xl px-4 py-3 text-sm resize-none focus:outline-none ${errors.excerpt ? 'border border-red-300 bg-red-50 text-red-700 ring-4 ring-red-100' : 'border border-slate-200 bg-white text-slate-700 focus:border-pulse focus:ring-2 focus:ring-pulse/20'}`}
             />
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               {errors.excerpt ? (
                 <p className="text-sm font-medium text-red-600">
                   {errors.excerpt}
                 </p>
               ) : (
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-400 leading-5">
                   Ringkasan membantu admin dan pembaca memahami isi artikel
                   lebih cepat.
                 </span>
               )}
-              <span className="text-xs font-medium text-slate-400">
+              <span className="text-xs font-medium text-slate-400 shrink-0">
                 {form.excerpt.length}/150
               </span>
             </div>
           </div>
         </div>
 
-        <div className="border-t border-slate-100 pt-8">
+        <div className="border-t border-slate-100 pt-6 sm:pt-8">
           <div className="mb-3 flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
                 Isi Artikel *
               </p>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="mt-1 text-sm text-slate-500 leading-5">
                 Minimal isi konten utama artikel sebelum disimpan atau diajukan.
               </p>
             </div>
           </div>
           <div
-            className={`rounded-[28px] border bg-white p-3 ${errors.contentMarkdown ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200'}`}
+            className={`rounded-2xl sm:rounded-[28px] border bg-white p-2 sm:p-3 overflow-hidden ${errors.contentMarkdown ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200'}`}
           >
             <MDXEditor
               key={initialValue?.articleId || 'new-article'}
@@ -572,7 +587,7 @@ export function ArticleForm({
                 });
               }}
               plugins={mdxPlugins}
-              contentEditableClassName="min-h-[400px] outline-none"
+              contentEditableClassName="min-h-[320px] sm:min-h-[400px] outline-none px-1 sm:px-2"
               className="mdx-editor-custom"
             />
           </div>
@@ -582,7 +597,7 @@ export function ArticleForm({
             </p>
           ) : null}
           {initialValue?.status === 'published' ? (
-            <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
+            <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700 leading-6">
               Perubahan artikel published akan dikirim sebagai revisi dan
               menunggu review admin sebelum live.
             </p>
