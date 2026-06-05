@@ -13,6 +13,12 @@ function readStoredSession() {
   }
 }
 
+function persistSession(payload) {
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  setAuthToken(payload.token);
+  return payload;
+}
+
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(readStoredSession);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
@@ -38,16 +44,33 @@ export function AuthProvider({ children }) {
           email,
           password
         });
-        const payload = {
+        const payload = persistSession({
           token: response.data.data.token,
           user: response.data.data.user
-        };
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        });
         setSession(payload);
+        return response.data;
+      },
+      async loginWithGoogle({ idToken, role = 'patient' }) {
+        const response = await apiClient.post('/auth/oauth/google', {
+          idToken,
+          role
+        });
+        const data = response.data?.data;
+
+        if (data?.token && data?.user) {
+          const payload = persistSession({
+            token: data.token,
+            user: data.user
+          });
+          setSession(payload);
+        }
+
         return response.data;
       },
       logout() {
         window.localStorage.removeItem(STORAGE_KEY);
+        setAuthToken(null);
         setSession(null);
       }
     }),
