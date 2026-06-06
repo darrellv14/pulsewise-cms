@@ -161,6 +161,8 @@ export function ArticleForm({
   initialValue,
   onAutosave,
   onSubmitReview,
+  submitLabel = 'Ajukan Review',
+  submitPendingLabel = 'Mengirim...',
   submitPending = false
 }) {
   const [form, setForm] = useState(() => buildInitialForm(initialValue));
@@ -328,7 +330,6 @@ export function ArticleForm({
   const handleSubmitReview = async () => {
     const nextErrors = runValidation({ requireReviewReady: true });
     if (Object.keys(nextErrors).length) {
-      toast.error('Lengkapi dulu artikel sebelum diajukan ke admin.');
       return;
     }
 
@@ -422,7 +423,7 @@ export function ArticleForm({
               ) : (
                 <Send size={16} className="rotate-45 -mt-1" />
               )}
-              {submitPending ? 'Mengirim...' : 'Ajukan Review'}
+              {submitPending ? submitPendingLabel : submitLabel}
             </button>
           </div>
         </div>

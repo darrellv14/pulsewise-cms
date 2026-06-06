@@ -1,4 +1,4 @@
-﻿import {
+import {
   ArrowLeft,
   Calendar,
   Heart,
@@ -53,15 +53,9 @@ function buildAuthorMeta(author) {
 
 function isGhostArticleError(error) {
   const status = error?.response?.status;
-  const message =
-    error?.response?.data?.message ||
-    error?.message ||
-    '';
+  const message = error?.response?.data?.message || error?.message || '';
 
-  return (
-    status === 404 ||
-    /tidak ditemukan|not found/i.test(message)
-  );
+  return status === 404 || /tidak ditemukan|not found/i.test(message);
 }
 
 function getInitials(value, fallback = 'U') {
@@ -186,7 +180,6 @@ export function ArticleDetailPage() {
         commentCount: Math.max(0, Number(current.commentCount || 0) + 1)
       }));
       setCommentDraft('');
-      toast.success('Komentar ditambahkan.');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, 'Komentar gagal dikirim.'));
@@ -215,7 +208,6 @@ export function ArticleDetailPage() {
         ...current,
         commentCount: Math.max(0, Number(current.commentCount || 0) + 1)
       }));
-      toast.success('Balasan ditambahkan.');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, 'Balasan gagal dikirim.'));
@@ -241,7 +233,6 @@ export function ArticleDetailPage() {
           };
         })
       }));
-      toast.success('Komentar diperbarui.');
     },
     onError: (error) => {
       toast.error(getErrorMessage(error, 'Komentar gagal diperbarui.'));
@@ -278,11 +269,6 @@ export function ArticleDetailPage() {
         ...current,
         commentCount: Math.max(0, Number(current.commentCount || 0) - removed)
       }));
-      toast.success(
-        variables.type === 'hide'
-          ? 'Komentar disembunyikan.'
-          : 'Komentar dihapus.'
-      );
     },
     onError: (error, variables) => {
       toast.error(

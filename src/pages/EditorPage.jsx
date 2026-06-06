@@ -85,6 +85,7 @@ export function EditorPage({ mode }) {
   const submitMutation = useMutation({
     mutationFn: async (payload) => {
       let targetArticleId = draftArticleId;
+      const isPublishedArticle = article?.status === 'published';
 
       if (!targetArticleId) {
         const created = await createArticle(payload);
@@ -94,19 +95,27 @@ export function EditorPage({ mode }) {
         await updateArticle(targetArticleId, payload);
       }
 
+      if (isPublishedArticle) {
+        return { articleId: targetArticleId, kind: 'revision' };
+      }
+
       await submitArticleForReview(targetArticleId);
-      return targetArticleId;
+      return { articleId: targetArticleId, kind: 'article' };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       invalidateEducationCollections();
-      toast.success('Artikel berhasil diajukan ke admin untuk direview.');
+      toast.success(
+        result.kind === 'revision'
+          ? 'Revisi artikel berhasil dikirim ke antrean admin.'
+          : 'Artikel berhasil diajukan ke admin untuk direview.'
+      );
       navigate('/my-articles', { replace: true });
     },
     onError: (requestError) => {
-      toast.error(
+      const message =
         requestError?.response?.data?.message ||
-          'Artikel gagal diajukan untuk review.'
-      );
+        'Perubahan artikel gagal dikirim.';
+      toast.error(message);
     }
   });
 
@@ -180,6 +189,14 @@ export function EditorPage({ mode }) {
           tagOptions={DEFAULT_TAG_OPTIONS}
           initialValue={article}
           submitPending={submitMutation.isPending}
+          submitLabel={
+            article?.status === 'published' ? 'Kirim Revisi' : 'Ajukan Review'
+          }
+          submitPendingLabel={
+            article?.status === 'published'
+              ? 'Mengirim revisi...'
+              : 'Mengirim...'
+          }
           onAutosave={async (payload) => {
             const normalized = {
               title: payload.title,
