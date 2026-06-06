@@ -57,9 +57,10 @@ export function AuthProvider({ children }) {
         return response.data;
       },
 
-      async loginWithGoogle({ idToken, role = 'patient' }) {
+      async loginWithGoogle({ idToken, accessToken, role = 'patient' }) {
         const response = await apiClient.post('/auth/oauth/google', {
           idToken,
+          accessToken,
           role
         });
 

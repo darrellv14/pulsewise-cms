@@ -1,4 +1,4 @@
-import { GoogleLogin } from '@react-oauth/google';
+import { useGoogleLogin } from '@react-oauth/google';
 import { HeartPulse, Loader2, Lock, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
@@ -36,9 +36,9 @@ export function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse) => {
-    if (!credentialResponse?.credential) {
-      const message = 'Google tidak mengirim ID token yang valid.';
+  const handleGoogleToken = async ({ accessToken, idToken }) => {
+    if (!accessToken && !idToken) {
+      const message = 'Google tidak mengirim token yang valid.';
       setError(message);
       toast.error(message);
       setGoogleSubmitting(false);
@@ -50,7 +50,8 @@ export function LoginPage() {
 
     try {
       const result = await loginWithGoogle({
-        idToken: credentialResponse.credential,
+        accessToken,
+        idToken,
         role: 'patient'
       });
 
@@ -86,6 +87,32 @@ export function LoginPage() {
       setGoogleSubmitting(false);
     }
   };
+
+  const googleLogin = useGoogleLogin({
+    flow: 'implicit',
+    scope: 'openid email profile',
+    onSuccess: (tokenResponse) => {
+      handleGoogleToken({ accessToken: tokenResponse?.access_token });
+    },
+    onError: () => {
+      const message = 'Login Google dibatalkan atau gagal.';
+      setError(message);
+      toast.error(message);
+      setGoogleSubmitting(false);
+    },
+    onNonOAuthError: (nonOAuthError) => {
+      const message =
+        nonOAuthError?.type === 'popup_failed_to_open'
+          ? 'Popup Google diblokir browser. Izinkan pop-up untuk PulseWise CMS, lalu coba lagi.'
+          : 'Popup Google gagal dibuka. Coba matikan extension pemblokir popup sementara.';
+
+      setError(message);
+      toast.error(message);
+      setGoogleSubmitting(false);
+    },
+    use_fedcm_for_prompt: true,
+    use_fedcm_for_button: true
+  });
 
   if (isAuthenticated) {
     return <Navigate to="/articles" replace />;
@@ -198,35 +225,23 @@ export function LoginPage() {
               <span className="h-px flex-1 bg-slate-200" />
             </div>
 
-            <div className="relative flex min-h-12 w-full items-center justify-center overflow-hidden rounded-xl bg-white transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md">
-              <div
-                className={
-                  googleSubmitting ? 'pointer-events-none opacity-0' : 'w-full'
-                }
+            <div className="relative">
+              <button
+                type="button"
+                disabled={submitting || googleSubmitting}
+                onClick={() => {
+                  setGoogleSubmitting(true);
+                  setError('');
+                  googleLogin();
+                }}
+                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
               >
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={() => {
-                    const message =
-                      'Login Google dibatalkan atau gagal dibuka.';
-                    setError(message);
-                    toast.error(message);
-                    setGoogleSubmitting(false);
-                  }}
-                  type="standard"
-                  theme="outline"
-                  size="large"
-                  text="signin_with"
-                  shape="rectangular"
-                  logo_alignment="left"
-                  width="320"
-                  locale="id"
-                  useOneTap={false}
-                />
-              </div>
+                <GoogleMark />
+                Masuk Dengan Google
+              </button>
 
               {googleSubmitting && (
-                <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-2xl bg-white/90 text-sm font-bold text-slate-500 backdrop-blur-sm">
+                <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-white/90 text-sm font-bold text-slate-500 backdrop-blur-sm">
                   <Loader2 size={18} className="animate-spin" />
                   Memverifikasi...
                 </div>
@@ -236,5 +251,28 @@ export function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function GoogleMark() {
+  return (
+    <svg aria-hidden="true" className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C4 20.53 7.7 23 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 4 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+      />
+    </svg>
   );
 }
