@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useAuth } from '../auth/AuthContext.jsx';
 import { EditorSkeleton } from '../components/AsyncState.jsx';
 import { ArticleForm } from '../components/ArticleForm.jsx';
 import { NotFoundPage } from './NotFoundPage.jsx';
 import {
+  archiveArticle,
   createArticle,
+  fetchAdminArticleDetail,
   fetchCategories,
   fetchMyArticleDetail,
   submitArticleForReview,
@@ -25,6 +28,18 @@ const DEFAULT_TAG_OPTIONS = [
   },
   { tagId: 'default-tidur', slug: 'tidur', name: 'tidur' }
 ];
+
+function normalizeArticlePayload(payload) {
+  return {
+    title: payload.title,
+    excerpt: payload.excerpt,
+    categorySlug: payload.categorySlug,
+    contentMarkdown: payload.contentMarkdown,
+    tags: payload.tags,
+    coverImageUrl: payload.coverImageUrl,
+    coverImagePublicId: payload.coverImagePublicId
+  };
+}
 
 function isUuid(value) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -46,14 +61,24 @@ function isGhostEditorError(error) {
 export function EditorPage({ mode }) {
   const navigate = useNavigate();
   const { articleId } = useParams();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [categories, setCategories] = useState([]);
   const [article, setArticle] = useState(null);
   const [draftArticleId, setDraftArticleId] = useState(
     mode === 'edit' ? articleId : null
   );
+  const draftArticleIdRef = useRef(mode === 'edit' ? articleId : null);
+  const createDraftPromiseRef = useRef(null);
   const [loading, setLoading] = useState(mode === 'edit');
   const [error, setError] = useState(null);
+  const autosaveMutateAsyncRef = useRef(null);
+  const submitMutateAsyncRef = useRef(null);
+  const archiveMutateAsyncRef = useRef(null);
+
+  useEffect(() => {
+    draftArticleIdRef.current = draftArticleId;
+  }, [draftArticleId]);
 
   const invalidateEducationCollections = () => {
     queryClient.invalidateQueries({ queryKey: ['education', 'my-articles'] });
@@ -67,10 +92,25 @@ export function EditorPage({ mode }) {
 
   const autosaveMutation = useMutation({
     mutationFn: async (payload) => {
-      if (draftArticleId) {
-        return updateArticle(draftArticleId, payload);
+      const currentArticleId = draftArticleIdRef.current;
+
+      if (currentArticleId) {
+        return updateArticle(currentArticleId, payload);
       }
-      return createArticle(payload);
+
+      if (!createDraftPromiseRef.current) {
+        createDraftPromiseRef.current = createArticle(payload).finally(() => {
+          createDraftPromiseRef.current = null;
+        });
+      }
+
+      const created = await createDraftPromiseRef.current;
+      if (created?.articleId) {
+        draftArticleIdRef.current = created.articleId;
+        return updateArticle(created.articleId, payload);
+      }
+
+      return created;
     },
     onSuccess: (result) => {
       if (result?.articleId && result.articleId !== draftArticleId) {
@@ -119,6 +159,52 @@ export function EditorPage({ mode }) {
     }
   });
 
+  const archiveMutation = useMutation({
+    mutationFn: archiveArticle,
+    onSuccess: () => {
+      invalidateEducationCollections();
+      toast.success('Artikel berhasil diarsipkan.');
+      navigate('/my-articles', { replace: true });
+    },
+    onError: (requestError) => {
+      const message =
+        requestError?.response?.data?.message || 'Artikel gagal diarsipkan.';
+      toast.error(message);
+    }
+  });
+
+  autosaveMutateAsyncRef.current = autosaveMutation.mutateAsync;
+  submitMutateAsyncRef.current = submitMutation.mutateAsync;
+  archiveMutateAsyncRef.current = archiveMutation.mutateAsync;
+
+  const handleAutosave = useCallback(
+    async (payload) =>
+      autosaveMutateAsyncRef.current?.(normalizeArticlePayload(payload)),
+    []
+  );
+
+  const handleSubmitReview = useCallback(
+    async (payload) =>
+      submitMutateAsyncRef.current?.(normalizeArticlePayload(payload)),
+    []
+  );
+
+  const handleArchive = useCallback(async () => {
+    if (!draftArticleIdRef.current) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      'Arsipkan artikel ini? Artikel akan keluar dari antrean dan feed publikasi.'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    await archiveMutateAsyncRef.current?.(draftArticleIdRef.current);
+  }, []);
+
   useEffect(() => {
     fetchCategories()
       .then(setCategories)
@@ -143,7 +229,10 @@ export function EditorPage({ mode }) {
     setLoading(true);
     setError(null);
     setDraftArticleId(articleId);
-    fetchMyArticleDetail(articleId)
+    const loadArticle =
+      user?.role === 'admin' ? fetchAdminArticleDetail : fetchMyArticleDetail;
+
+    loadArticle(articleId)
       .then(setArticle)
       .catch((requestError) => {
         const message =
@@ -157,7 +246,7 @@ export function EditorPage({ mode }) {
         }
       })
       .finally(() => setLoading(false));
-  }, [articleId, mode]);
+  }, [articleId, mode, user?.role]);
 
   if (loading) {
     return <EditorSkeleton />;
@@ -189,40 +278,25 @@ export function EditorPage({ mode }) {
           tagOptions={DEFAULT_TAG_OPTIONS}
           initialValue={article}
           submitPending={submitMutation.isPending}
+          archivePending={archiveMutation.isPending}
+          showArchiveAction={user?.role === 'admin' && mode === 'edit'}
           submitLabel={
-            article?.status === 'published' ? 'Kirim Revisi' : 'Ajukan Review'
+            article?.status === 'published'
+              ? 'Kirim Revisi'
+              : article?.status === 'pending_review'
+                ? 'Update Pengajuan'
+                : 'Ajukan Review'
           }
           submitPendingLabel={
             article?.status === 'published'
               ? 'Mengirim revisi...'
-              : 'Mengirim...'
+              : article?.status === 'pending_review'
+                ? 'Memperbarui pengajuan...'
+                : 'Mengirim...'
           }
-          onAutosave={async (payload) => {
-            const normalized = {
-              title: payload.title,
-              excerpt: payload.excerpt,
-              categorySlug: payload.categorySlug,
-              contentMarkdown: payload.contentMarkdown,
-              tags: payload.tags,
-              coverImageUrl: payload.coverImageUrl,
-              coverImagePublicId: payload.coverImagePublicId
-            };
-
-            return autosaveMutation.mutateAsync(normalized);
-          }}
-          onSubmitReview={async (payload) => {
-            const normalized = {
-              title: payload.title,
-              excerpt: payload.excerpt,
-              categorySlug: payload.categorySlug,
-              contentMarkdown: payload.contentMarkdown,
-              tags: payload.tags,
-              coverImageUrl: payload.coverImageUrl,
-              coverImagePublicId: payload.coverImagePublicId
-            };
-
-            return submitMutation.mutateAsync(normalized);
-          }}
+          onAutosave={handleAutosave}
+          onSubmitReview={handleSubmitReview}
+          onArchive={handleArchive}
         />
       </div>
     </div>

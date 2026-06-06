@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Plus,
   Edit2,
@@ -13,7 +13,8 @@ import {
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ErrorState, InlineLoader } from '../components/AsyncState.jsx';
-import { fetchMyArticles } from '../lib/educationApi.js';
+import { useAuth } from '../auth/AuthContext.jsx';
+import { archiveArticle, fetchMyArticles } from '../lib/educationApi.js';
 import { educationKeys } from '../lib/queryKeys.js';
 
 const STATUS_TABS = [
@@ -57,6 +58,8 @@ function getErrorMessage(error, fallback) {
 }
 
 export function MyArticlesPage() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState('draft');
 
   const query = useQuery({
@@ -73,6 +76,36 @@ export function MyArticlesPage() {
   }, [query.error]);
 
   const state = query.data || { items: [], pagination: {} };
+  const canArchiveArticles = user?.role === 'admin';
+
+  const archiveMutation = useMutation({
+    mutationFn: archiveArticle,
+    onSuccess: () => {
+      toast.success('Artikel berhasil diarsipkan.');
+      queryClient.invalidateQueries({ queryKey: ['education', 'my-articles'] });
+      queryClient.invalidateQueries({
+        queryKey: ['education', 'moderation-articles']
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['education', 'moderation-revisions']
+      });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, 'Artikel gagal diarsipkan.'));
+    }
+  });
+
+  const handleArchiveArticle = (article) => {
+    const confirmed = window.confirm(
+      `Arsipkan artikel "${article.title}"? Artikel akan keluar dari antrean dan feed.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    archiveMutation.mutate(article.articleId);
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -171,9 +204,16 @@ export function MyArticlesPage() {
                     >
                       <Edit2 size={16} />
                     </Link>
-                    <button className="p-2 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg transition-colors">
-                      <Trash2 size={16} />
-                    </button>
+                    {canArchiveArticles ? (
+                      <button
+                        onClick={() => handleArchiveArticle(article)}
+                        disabled={archiveMutation.isPending}
+                        className="p-2 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg transition-colors disabled:opacity-60"
+                        title="Arsipkan artikel"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -250,9 +290,16 @@ export function MyArticlesPage() {
                         >
                           <Edit2 size={16} />
                         </Link>
-                        <button className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg transition-all shadow-sm">
-                          <Trash2 size={16} />
-                        </button>
+                        {canArchiveArticles ? (
+                          <button
+                            onClick={() => handleArchiveArticle(article)}
+                            disabled={archiveMutation.isPending}
+                            className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg transition-all shadow-sm disabled:opacity-60"
+                            title="Arsipkan artikel"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>

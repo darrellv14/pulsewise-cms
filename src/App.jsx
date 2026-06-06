@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './auth/AuthContext.jsx';
 import { AppLayout } from './components/AppLayout.jsx';
+import { EditorSkeleton } from './components/AsyncState.jsx';
 import { ArticleDetailPage } from './pages/ArticleDetailPage.jsx';
 import { ArticlesPage } from './pages/ArticlesPage.jsx';
 import { LoginPage } from './pages/LoginPage.jsx';
@@ -19,7 +20,7 @@ function ProtectedRoute({ children }) {
   const { isAuthenticated, isBootstrapping } = useAuth();
 
   if (isBootstrapping) {
-    return <div className="screen-center">Preparing workspace...</div>;
+    return <EditorSkeleton />;
   }
 
   if (!isAuthenticated) {
@@ -42,9 +43,7 @@ function AdminRoute({ children }) {
 export default function App() {
   return (
     <AuthProvider>
-      <Suspense
-        fallback={<div className="screen-center">Loading workspace...</div>}
-      >
+      <Suspense fallback={<EditorSkeleton />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route

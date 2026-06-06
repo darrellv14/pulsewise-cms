@@ -19,6 +19,7 @@ import {
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { uploadEducationImage } from '../lib/educationApi.js';
 import {
+  Archive,
   Image as ImageIcon,
   Loader2,
   Send,
@@ -161,6 +162,9 @@ export function ArticleForm({
   initialValue,
   onAutosave,
   onSubmitReview,
+  onArchive,
+  showArchiveAction = false,
+  archivePending = false,
   submitLabel = 'Ajukan Review',
   submitPendingLabel = 'Mengirim...',
   submitPending = false
@@ -410,21 +414,44 @@ export function ArticleForm({
             </span>
           </div>
           <div className="w-full sm:w-auto">
-            <button
-              type="button"
-              onClick={handleSubmitReview}
-              disabled={
-                submitPending || coverUploading || autosaveStatus === 'saving'
-              }
-              className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-3 sm:px-5 sm:py-2 rounded-xl text-white bg-pulse hover:bg-pulse-dark font-medium text-sm transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-            >
-              {submitPending ? (
-                <Loader2 size={16} className="animate-spin" />
-              ) : (
-                <Send size={16} className="rotate-45 -mt-1" />
-              )}
-              {submitPending ? submitPendingLabel : submitLabel}
-            </button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              {showArchiveAction ? (
+                <button
+                  type="button"
+                  onClick={onArchive}
+                  disabled={
+                    archivePending ||
+                    submitPending ||
+                    coverUploading ||
+                    autosaveStatus === 'saving'
+                  }
+                  className="inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {archivePending ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    <Archive size={16} />
+                  )}
+                  {archivePending ? 'Mengarsipkan...' : 'Arsipkan'}
+                </button>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={handleSubmitReview}
+                disabled={
+                  submitPending || coverUploading || autosaveStatus === 'saving'
+                }
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-2 px-4 py-3 sm:px-5 sm:py-2 rounded-xl text-white bg-pulse hover:bg-pulse-dark font-medium text-sm transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {submitPending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Send size={16} className="rotate-45 -mt-1" />
+                )}
+                {submitPending ? submitPendingLabel : submitLabel}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -674,6 +701,12 @@ export function ArticleForm({
             <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm text-indigo-700 leading-6">
               Perubahan artikel published akan dikirim sebagai revisi dan
               menunggu review admin sebelum live.
+            </p>
+          ) : initialValue?.status === 'pending_review' ? (
+            <p className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-700 leading-6">
+              Artikel ini sedang menunggu review. Perubahan yang Anda buat akan
+              menimpa pengajuan sebelumnya, sehingga admin hanya melihat versi
+              terbaru.
             </p>
           ) : null}
         </div>

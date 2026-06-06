@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ErrorState, InlineLoader } from '../components/AsyncState.jsx';
 import { MdxContent } from '../components/MdxContent.jsx';
 import {
+  archiveArticle,
   approveArticle,
   approveRevision,
   fetchAdminArticleDetail,
@@ -12,7 +14,7 @@ import {
   rejectArticle,
   rejectRevision
 } from '../lib/educationApi.js';
-import { ArrowRight, Eye, ShieldCheck, X } from 'lucide-react';
+import { Archive, ArrowRight, Eye, Pencil, ShieldCheck, X } from 'lucide-react';
 import { educationKeys } from '../lib/queryKeys.js';
 
 function getErrorMessage(error, fallback) {
@@ -477,6 +479,23 @@ export function ModerationPage() {
     }
   });
 
+  const archiveMutation = useMutation({
+    mutationFn: async (item) => archiveArticle(item.articleId),
+    onSuccess: (_data, item) => {
+      toast.success(`${item._type} berhasil diarsipkan.`);
+      invalidateModeration();
+      setSelectedItem(null);
+    },
+    onError: (error, item) => {
+      toast.error(
+        getErrorMessage(
+          error,
+          `Gagal mengarsipkan ${item._type.toLowerCase()}.`
+        )
+      );
+    }
+  });
+
   if (pendingArticlesQuery.isLoading || pendingRevisionsQuery.isLoading) {
     return (
       <div className="flex-1 flex justify-center p-12">
@@ -578,12 +597,19 @@ export function ModerationPage() {
                         >
                           <Eye size={15} /> Review
                         </button>
+                        <Link
+                          to={`/editor/${item.articleId}`}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
+                        >
+                          <Pencil size={15} /> Edit
+                        </Link>
                         <button
                           onClick={() => approveMutation.mutate(item)}
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-pulse/10 text-pulse hover:bg-pulse hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-60"
                           disabled={
                             approveMutation.isPending ||
-                            rejectMutation.isPending
+                            rejectMutation.isPending ||
+                            archiveMutation.isPending
                           }
                         >
                           Approve
@@ -600,11 +626,31 @@ export function ModerationPage() {
                           className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-red-200 disabled:opacity-60"
                           disabled={
                             approveMutation.isPending ||
-                            rejectMutation.isPending
+                            rejectMutation.isPending ||
+                            archiveMutation.isPending
                           }
                         >
                           Tolak
                         </button>
+                        {item._type === 'Artikel Baru' ? (
+                          <button
+                            onClick={() => {
+                              const confirmed = window.confirm(
+                                'Arsipkan artikel ini dan hapus dari antrean moderasi?'
+                              );
+                              if (!confirmed) return;
+                              archiveMutation.mutate(item);
+                            }}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:border-red-200 hover:bg-red-100 disabled:opacity-60"
+                            disabled={
+                              approveMutation.isPending ||
+                              rejectMutation.isPending ||
+                              archiveMutation.isPending
+                            }
+                          >
+                            <Archive size={15} /> Arsip
+                          </button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -637,5 +683,3 @@ export function ModerationPage() {
     </>
   );
 }
-
-
