@@ -7,6 +7,11 @@
     'my-articles',
     { status, page, limit }
   ],
+  adminArticles: ({ status, q = '', page = 1, limit = 20 } = {}) => [
+    'education',
+    'admin-articles',
+    { status, q, page, limit }
+  ],
   moderationArticles: ({ page = 1, limit = 20 } = {}) => [
     'education',
     'moderation-articles',

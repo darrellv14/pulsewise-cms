@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { EditorSkeleton } from '../components/AsyncState.jsx';
+import { ModalDialog } from '../components/ModalDialog.jsx';
 import { ArticleForm } from '../components/ArticleForm.jsx';
 import { NotFoundPage } from './NotFoundPage.jsx';
 import {
@@ -72,6 +73,7 @@ export function EditorPage({ mode }) {
   const createDraftPromiseRef = useRef(null);
   const [loading, setLoading] = useState(mode === 'edit');
   const [error, setError] = useState(null);
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
   const autosaveMutateAsyncRef = useRef(null);
   const submitMutateAsyncRef = useRef(null);
   const archiveMutateAsyncRef = useRef(null);
@@ -193,15 +195,6 @@ export function EditorPage({ mode }) {
     if (!draftArticleIdRef.current) {
       return;
     }
-
-    const confirmed = window.confirm(
-      'Arsipkan artikel ini? Artikel akan keluar dari antrean dan feed publikasi.'
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     await archiveMutateAsyncRef.current?.(draftArticleIdRef.current);
   }, []);
 
@@ -296,9 +289,28 @@ export function EditorPage({ mode }) {
           }
           onAutosave={handleAutosave}
           onSubmitReview={handleSubmitReview}
-          onArchive={handleArchive}
+          onArchive={() => setArchiveDialogOpen(true)}
         />
       </div>
+
+      <ModalDialog
+        open={archiveDialogOpen}
+        title="Arsipkan artikel"
+        description="Artikel akan keluar dari antrean moderasi dan tidak tampil di feed publikasi."
+        confirmLabel="Arsipkan"
+        confirmTone="danger"
+        isPending={archiveMutation.isPending}
+        onClose={() => setArchiveDialogOpen(false)}
+        onConfirm={async () => {
+          await handleArchive();
+          setArchiveDialogOpen(false);
+        }}
+      >
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+          Aksi ini ditujukan untuk admin. Artikel tetap tersimpan di sistem
+          sebagai arsip, tetapi tidak lagi aktif di workflow publikasi.
+        </div>
+      </ModalDialog>
     </div>
   );
 }

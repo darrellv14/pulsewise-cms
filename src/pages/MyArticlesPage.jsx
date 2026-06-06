@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ErrorState, InlineLoader } from '../components/AsyncState.jsx';
+import { ModalDialog } from '../components/ModalDialog.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { archiveArticle, fetchMyArticles } from '../lib/educationApi.js';
 import { educationKeys } from '../lib/queryKeys.js';
@@ -61,6 +62,7 @@ export function MyArticlesPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('draft');
+  const [articleToArchive, setArticleToArchive] = useState(null);
 
   const query = useQuery({
     queryKey: educationKeys.myArticles({ status, page: 1, limit: 10 }),
@@ -96,15 +98,7 @@ export function MyArticlesPage() {
   });
 
   const handleArchiveArticle = (article) => {
-    const confirmed = window.confirm(
-      `Arsipkan artikel "${article.title}"? Artikel akan keluar dari antrean dan feed.`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
-    archiveMutation.mutate(article.articleId);
+    setArticleToArchive(article);
   };
 
   return (
@@ -329,6 +323,34 @@ export function MyArticlesPage() {
           </Link>
         </div>
       )}
+
+      <ModalDialog
+        open={Boolean(articleToArchive)}
+        title="Arsipkan artikel"
+        description={
+          articleToArchive
+            ? `Artikel "${articleToArchive.title}" akan keluar dari antrean dan feed publikasi.`
+            : ''
+        }
+        confirmLabel="Arsipkan"
+        confirmTone="danger"
+        isPending={archiveMutation.isPending}
+        onClose={() => setArticleToArchive(null)}
+        onConfirm={() => {
+          if (!articleToArchive) {
+            return;
+          }
+
+          archiveMutation.mutate(articleToArchive.articleId, {
+            onSuccess: () => setArticleToArchive(null)
+          });
+        }}
+      >
+        <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
+          Aksi ini hanya tersedia untuk admin. Artikel akan tetap ada sebagai
+          arsip, tetapi tidak lagi aktif untuk pembaca atau moderasi.
+        </div>
+      </ModalDialog>
     </div>
   );
 }

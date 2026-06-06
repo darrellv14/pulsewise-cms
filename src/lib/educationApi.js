@@ -109,6 +109,13 @@ export async function fetchPendingArticles(params = {}) {
   return response.data.data;
 }
 
+export async function fetchAdminArticles(params = {}) {
+  const response = await apiClient.get('/admin/education/articles', {
+    params
+  });
+  return response.data.data;
+}
+
 export async function fetchPendingRevisions(params = {}) {
   const response = await apiClient.get(
     '/admin/education/articles/revisions/pending',

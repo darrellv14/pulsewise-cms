@@ -4,17 +4,32 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { ErrorState, InlineLoader } from '../components/AsyncState.jsx';
 import { MdxContent } from '../components/MdxContent.jsx';
+import { ModalDialog } from '../components/ModalDialog.jsx';
 import {
   archiveArticle,
   approveArticle,
   approveRevision,
+  featureArticle,
+  fetchAdminArticles,
   fetchAdminArticleDetail,
   fetchPendingArticles,
   fetchPendingRevisions,
   rejectArticle,
-  rejectRevision
+  rejectRevision,
+  unpublishArticle
 } from '../lib/educationApi.js';
-import { Archive, ArrowRight, Eye, Pencil, ShieldCheck, X } from 'lucide-react';
+import {
+  Archive,
+  ArrowRight,
+  Eye,
+  Pencil,
+  Search,
+  ShieldCheck,
+  Star,
+  StarOff,
+  Undo2,
+  X
+} from 'lucide-react';
 import { educationKeys } from '../lib/queryKeys.js';
 
 function getErrorMessage(error, fallback) {
@@ -49,6 +64,40 @@ function tagsEqual(left, right) {
   const a = normalizeTags(left).sort().join('|');
   const b = normalizeTags(right).sort().join('|');
   return a === b;
+}
+
+const MODERATION_TABS = [
+  { id: 'queue', label: 'Antrean Moderasi' },
+  { id: 'articles', label: 'Semua Artikel' }
+];
+
+const ADMIN_STATUS_OPTIONS = [
+  { value: '', label: 'Semua status' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'pending_review', label: 'Pending Review' },
+  { value: 'published', label: 'Published' },
+  { value: 'rejected', label: 'Rejected' },
+  { value: 'archived', label: 'Archived' },
+  { value: 'unpublished', label: 'Unpublished' }
+];
+
+function ArticleStatusBadge({ status }) {
+  const toneMap = {
+    draft: 'bg-slate-100 text-slate-600',
+    pending_review: 'bg-amber-100 text-amber-700',
+    published: 'bg-emerald-100 text-emerald-700',
+    rejected: 'bg-red-100 text-red-700',
+    archived: 'bg-slate-200 text-slate-700',
+    unpublished: 'bg-indigo-100 text-indigo-700'
+  };
+
+  return (
+    <span
+      className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${toneMap[status] || toneMap.draft}`}
+    >
+      {status ? status.replace(/_/g, ' ') : 'unknown'}
+    </span>
+  );
 }
 
 function DiffField({ label, before, after, changed, type = 'text' }) {
@@ -321,7 +370,9 @@ function ModerationPreviewModal({ item, detail, isLoading, onClose }) {
             <h2 className="mt-1 text-2xl font-extrabold text-slate-900">
               {isRevision
                 ? 'Lihat perubahan revisi'
-                : 'Lihat detail artikel baru'}
+                : item._type === 'Artikel Baru'
+                  ? 'Lihat detail artikel baru'
+                  : 'Lihat detail artikel'}
             </h2>
           </div>
           <button
@@ -359,7 +410,19 @@ function ModerationPreviewModal({ item, detail, isLoading, onClose }) {
 
 export function ModerationPage() {
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState('queue');
   const [selectedItem, setSelectedItem] = useState(null);
+  const [adminStatusFilter, setAdminStatusFilter] = useState('');
+  const [adminSearchInput, setAdminSearchInput] = useState('');
+  const [adminSearch, setAdminSearch] = useState('');
+  const [adminPage, setAdminPage] = useState(1);
+  const [dialogState, setDialogState] = useState({
+    open: false,
+    type: null,
+    item: null
+  });
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [featuredOrderInput, setFeaturedOrderInput] = useState('1');
 
   const pendingArticlesQuery = useQuery({
     queryKey: educationKeys.moderationArticles({ page: 1, limit: 20 }),
@@ -376,6 +439,32 @@ export function ModerationPage() {
     queryFn: () => fetchAdminArticleDetail(selectedItem.articleId),
     enabled: Boolean(selectedItem?.articleId)
   });
+
+  const adminArticlesQuery = useQuery({
+    queryKey: educationKeys.adminArticles({
+      status: adminStatusFilter,
+      q: adminSearch,
+      page: adminPage,
+      limit: 20
+    }),
+    queryFn: () =>
+      fetchAdminArticles({
+        status: adminStatusFilter || undefined,
+        q: adminSearch || undefined,
+        page: adminPage,
+        limit: 20
+      }),
+    enabled: activeTab === 'articles'
+  });
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setAdminSearch(adminSearchInput.trim());
+      setAdminPage(1);
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [adminSearchInput]);
 
   useEffect(() => {
     if (pendingArticlesQuery.error) {
@@ -410,6 +499,17 @@ export function ModerationPage() {
     }
   }, [moderationDetailQuery.error]);
 
+  useEffect(() => {
+    if (adminArticlesQuery.error) {
+      toast.error(
+        getErrorMessage(
+          adminArticlesQuery.error,
+          'Daftar semua artikel admin gagal dimuat.'
+        )
+      );
+    }
+  }, [adminArticlesQuery.error]);
+
   const queue = useMemo(() => {
     const pendingArticles = pendingArticlesQuery.data?.items || [];
     const pendingRevisions = pendingRevisionsQuery.data?.items || [];
@@ -432,6 +532,9 @@ export function ModerationPage() {
   }, [pendingArticlesQuery.data, pendingRevisionsQuery.data]);
 
   const invalidateModeration = () => {
+    queryClient.invalidateQueries({
+      queryKey: ['education', 'admin-articles']
+    });
     queryClient.invalidateQueries({
       queryKey: educationKeys.moderationArticles({ page: 1, limit: 20 })
     });
@@ -496,32 +599,65 @@ export function ModerationPage() {
     }
   });
 
-  if (pendingArticlesQuery.isLoading || pendingRevisionsQuery.isLoading) {
-    return (
-      <div className="flex-1 flex justify-center p-12">
-        <InlineLoader label="Memuat antrean moderasi..." />
-      </div>
-    );
-  }
+  const featureMutation = useMutation({
+    mutationFn: async ({ articleId, featured, featuredOrder }) =>
+      featureArticle(articleId, featured, featuredOrder),
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables.featured
+          ? 'Artikel berhasil ditandai sebagai featured.'
+          : 'Status featured artikel berhasil dilepas.'
+      );
+      invalidateModeration();
+      setDialogState({ open: false, type: null, item: null });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, 'Status featured gagal diperbarui.'));
+    }
+  });
 
-  if (pendingArticlesQuery.isError || pendingRevisionsQuery.isError) {
-    return (
-      <div className="p-8">
-        <ErrorState
-          title="Moderasi belum tersedia"
-          message={getErrorMessage(
-            pendingArticlesQuery.error || pendingRevisionsQuery.error,
-            'Queue moderasi gagal dimuat.'
-          )}
-          actionLabel="Coba lagi"
-          onAction={() => {
-            pendingArticlesQuery.refetch();
-            pendingRevisionsQuery.refetch();
-          }}
-        />
-      </div>
-    );
-  }
+  const unpublishMutation = useMutation({
+    mutationFn: async (articleId) => unpublishArticle(articleId),
+    onSuccess: () => {
+      toast.success('Artikel berhasil di-unpublish.');
+      invalidateModeration();
+      setDialogState({ open: false, type: null, item: null });
+    },
+    onError: (error) => {
+      toast.error(getErrorMessage(error, 'Artikel gagal di-unpublish.'));
+    }
+  });
+
+  const isDialogPending =
+    approveMutation.isPending ||
+    rejectMutation.isPending ||
+    archiveMutation.isPending ||
+    featureMutation.isPending ||
+    unpublishMutation.isPending;
+  const adminArticles = adminArticlesQuery.data?.items || [];
+  const adminPagination = adminArticlesQuery.data?.pagination;
+
+  const openDialog = (type, item) => {
+    setDialogState({ open: true, type, item });
+    setRejectionReason('');
+    setFeaturedOrderInput(String(item?.featuredOrder || 1));
+  };
+
+  const closeDialog = () => {
+    if (
+      approveMutation.isPending ||
+      rejectMutation.isPending ||
+      archiveMutation.isPending ||
+      featureMutation.isPending ||
+      unpublishMutation.isPending
+    ) {
+      return;
+    }
+
+    setDialogState({ open: false, type: null, item: null });
+    setRejectionReason('');
+    setFeaturedOrderInput('1');
+  };
 
   return (
     <>
@@ -530,146 +666,392 @@ export function ModerationPage() {
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-2xl font-bold text-slate-900">
-                Queue Moderasi
+                Moderasi Artikel
               </h1>
-              <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2 py-0.5 rounded-md">
-                {queue.length} Menunggu
-              </span>
             </div>
             <p className="text-slate-500 text-sm">
-              Admin sekarang bisa melihat isi artikel baru secara penuh dan
-              membandingkan revisi sebelum approve.
+              Satu panel kerja untuk review, edit, feature, unpublish, dan
+              arsip artikel edukasi.
             </p>
           </div>
         </div>
 
-        {queue.length ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Judul & Author
-                  </th>
-                  <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Tipe Antrean
-                  </th>
-                  <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Tanggal Submit
-                  </th>
-                  <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
-                    Tindakan
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {queue.map((item) => (
-                  <tr
-                    key={item._id}
-                    className="hover:bg-slate-50/50 transition-colors group"
-                  >
-                    <td className="py-4 px-6">
-                      <p className="font-semibold text-slate-800 text-sm line-clamp-1">
-                        {item.title}
-                      </p>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Oleh:{' '}
-                        {item.author?.displayName ||
-                          item.author?.name ||
-                          'Kontributor'}
-                      </p>
-                    </td>
-                    <td className="py-4 px-6">
-                      <span
-                        className={`text-xs font-semibold px-2.5 py-1 rounded-md ${item._type === 'Revisi' ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'}`}
-                      >
-                        {item._type}
-                      </span>
-                    </td>
-                    <td className="py-4 px-6 text-sm text-slate-500">
-                      {formatDate(item.createdAt || item.updatedAt)}
-                    </td>
-                    <td className="py-4 px-6 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => setSelectedItem(item)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
-                        >
-                          <Eye size={15} /> Review
-                        </button>
-                        <Link
-                          to={`/editor/${item.articleId}`}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
-                        >
-                          <Pencil size={15} /> Edit
-                        </Link>
-                        <button
-                          onClick={() => approveMutation.mutate(item)}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-pulse/10 text-pulse hover:bg-pulse hover:text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-60"
-                          disabled={
-                            approveMutation.isPending ||
-                            rejectMutation.isPending ||
-                            archiveMutation.isPending
-                          }
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => {
-                            const reason = window.prompt(
-                              `Alasan penolakan ${item._type.toLowerCase()}:`,
-                              'Perlu perbaikan redaksional'
-                            );
-                            if (!reason) return;
-                            rejectMutation.mutate({ item, reason });
-                          }}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg text-sm font-medium transition-colors border border-transparent hover:border-red-200 disabled:opacity-60"
-                          disabled={
-                            approveMutation.isPending ||
-                            rejectMutation.isPending ||
-                            archiveMutation.isPending
-                          }
-                        >
-                          Tolak
-                        </button>
-                        {item._type === 'Artikel Baru' ? (
-                          <button
-                            onClick={() => {
-                              const confirmed = window.confirm(
-                                'Arsipkan artikel ini dan hapus dari antrean moderasi?'
-                              );
-                              if (!confirmed) return;
-                              archiveMutation.mutate(item);
-                            }}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:border-red-200 hover:bg-red-100 disabled:opacity-60"
-                            disabled={
-                              approveMutation.isPending ||
-                              rejectMutation.isPending ||
-                              archiveMutation.isPending
-                            }
-                          >
-                            <Archive size={15} /> Arsip
-                          </button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="bg-white rounded-2xl p-12 shadow-sm border border-slate-100 flex flex-col items-center text-center">
-            <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
-              <ShieldCheck size={32} className="text-emerald-500" />
+        <div className="flex flex-wrap gap-2">
+          {MODERATION_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors ${
+                activeTab === tab.id
+                  ? 'bg-pulse text-white shadow-sm'
+                  : 'bg-white text-slate-500 border border-slate-200 hover:border-pulse/30 hover:text-pulse'
+              }`}
+            >
+              {tab.label}
+              {tab.id === 'queue' ? ` (${queue.length})` : ''}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'queue' ? (
+          pendingArticlesQuery.isLoading || pendingRevisionsQuery.isLoading ? (
+            <div className="flex justify-center rounded-2xl border border-slate-100 bg-white p-12 shadow-sm">
+              <InlineLoader label="Memuat antrean moderasi..." />
             </div>
-            <h3 className="text-lg font-semibold text-slate-800">
-              Antrean Bersih
-            </h3>
-            <p className="text-slate-500 mt-1 max-w-sm mx-auto">
-              Semua artikel dan revisi telah berhasil direview. Pekerjaan Anda
-              selesai untuk saat ini.
-            </p>
+          ) : pendingArticlesQuery.isError || pendingRevisionsQuery.isError ? (
+            <ErrorState
+              title="Moderasi belum tersedia"
+              message={getErrorMessage(
+                pendingArticlesQuery.error || pendingRevisionsQuery.error,
+                'Queue moderasi gagal dimuat.'
+              )}
+              actionLabel="Coba lagi"
+              onAction={() => {
+                pendingArticlesQuery.refetch();
+                pendingRevisionsQuery.refetch();
+              }}
+            />
+          ) : queue.length ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100">
+                    <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Judul & Author
+                    </th>
+                    <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Tipe Antrean
+                    </th>
+                    <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Tanggal Submit
+                    </th>
+                    <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
+                      Tindakan
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {queue.map((item) => (
+                    <tr
+                      key={item._id}
+                      className="hover:bg-slate-50/50 transition-colors group"
+                    >
+                      <td className="py-4 px-6">
+                        <p className="font-semibold text-slate-800 text-sm line-clamp-1">
+                          {item.title}
+                        </p>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Oleh:{' '}
+                          {item.author?.displayName ||
+                            item.author?.name ||
+                            'Kontributor'}
+                        </p>
+                      </td>
+                      <td className="py-4 px-6">
+                        <span
+                          className={`text-xs font-semibold px-2.5 py-1 rounded-md ${item._type === 'Revisi' ? 'bg-indigo-50 text-indigo-700' : 'bg-emerald-50 text-emerald-700'}`}
+                        >
+                          {item._type}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-sm text-slate-500">
+                        {formatDate(item.createdAt || item.updatedAt)}
+                      </td>
+                      <td className="py-4 px-6 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedItem(item)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
+                          >
+                            <Eye size={15} /> Review
+                          </button>
+                          <Link
+                            to={`/editor/${item.articleId}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
+                          >
+                            <Pencil size={15} /> Edit
+                          </Link>
+                          <button
+                            onClick={() => approveMutation.mutate(item)}
+                            className="flex items-center gap-1.5 rounded-lg bg-pulse/10 px-3 py-1.5 text-sm font-medium text-pulse transition-colors hover:bg-pulse hover:text-white disabled:opacity-60"
+                            disabled={isDialogPending}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            onClick={() => openDialog('reject', item)}
+                            className="flex items-center gap-1.5 rounded-lg border border-transparent bg-slate-100 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+                            disabled={isDialogPending}
+                          >
+                            Tolak
+                          </button>
+                          {item._type === 'Artikel Baru' ? (
+                            <button
+                              onClick={() => openDialog('archive', item)}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:border-red-200 hover:bg-red-100 disabled:opacity-60"
+                              disabled={isDialogPending}
+                            >
+                              <Archive size={15} /> Arsip
+                            </button>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-12 shadow-sm border border-slate-100 flex flex-col items-center text-center">
+              <div className="w-16 h-16 bg-emerald-50 rounded-full flex items-center justify-center mb-4">
+                <ShieldCheck size={32} className="text-emerald-500" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-800">
+                Antrean Bersih
+              </h3>
+              <p className="text-slate-500 mt-1 max-w-sm mx-auto">
+                Semua artikel dan revisi telah berhasil direview. Pekerjaan Anda
+                selesai untuk saat ini.
+              </p>
+            </div>
+          )
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+                <label className="relative">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+                  />
+                  <input
+                    value={adminSearchInput}
+                    onChange={(event) => setAdminSearchInput(event.target.value)}
+                    placeholder="Cari judul, ringkasan, atau penulis..."
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-700 outline-none transition-colors focus:border-pulse/30 focus:bg-white focus:ring-4 focus:ring-pulse/10"
+                  />
+                </label>
+                <select
+                  value={adminStatusFilter}
+                  onChange={(event) => {
+                    setAdminStatusFilter(event.target.value);
+                    setAdminPage(1);
+                  }}
+                  className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-pulse/30 focus:bg-white focus:ring-4 focus:ring-pulse/10"
+                >
+                  {ADMIN_STATUS_OPTIONS.map((option) => (
+                    <option key={option.value || 'all'} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {adminArticlesQuery.isLoading ? (
+              <div className="flex justify-center rounded-2xl border border-slate-100 bg-white p-12 shadow-sm">
+                <InlineLoader label="Memuat semua artikel..." />
+              </div>
+            ) : adminArticlesQuery.isError ? (
+              <ErrorState
+                title="Daftar artikel belum tersedia"
+                message={getErrorMessage(
+                  adminArticlesQuery.error,
+                  'Daftar semua artikel admin gagal dimuat.'
+                )}
+                actionLabel="Coba lagi"
+                onAction={() => adminArticlesQuery.refetch()}
+              />
+            ) : (
+              <>
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/50 border-b border-slate-100">
+                        <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Artikel
+                        </th>
+                        <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Penulis
+                        </th>
+                        <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Status
+                        </th>
+                        <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                          Updated
+                        </th>
+                        <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500 text-right">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {adminArticles.length ? (
+                        adminArticles.map((article) => (
+                          <tr
+                            key={article.articleId}
+                            className="hover:bg-slate-50/50 transition-colors"
+                          >
+                            <td className="py-4 px-6">
+                              <div className="space-y-1">
+                                <p className="font-semibold text-sm text-slate-800 line-clamp-1">
+                                  {article.title}
+                                </p>
+                                <p className="text-xs text-slate-500 line-clamp-1">
+                                  {article.category?.name || 'Tanpa kategori'}
+                                </p>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 text-sm text-slate-600">
+                              {article.author?.displayName ||
+                                article.author?.username ||
+                                'Kontributor'}
+                            </td>
+                            <td className="py-4 px-6">
+                              <ArticleStatusBadge status={article.status} />
+                            </td>
+                            <td className="py-4 px-6 text-sm text-slate-500">
+                              {formatDate(article.updatedAt || article.createdAt)}
+                            </td>
+                            <td className="py-4 px-6">
+                              <div className="flex flex-wrap items-center justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedItem({
+                                      ...article,
+                                      _type: article.pendingRevision
+                                        ? 'Revisi'
+                                        : 'Artikel',
+                                      _id:
+                                        article.pendingRevision?.revisionId ||
+                                        article.articleId
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
+                                >
+                                  <Eye size={15} /> View
+                                </button>
+                                <Link
+                                  to={`/editor/${article.articleId}`}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
+                                >
+                                  <Pencil size={15} /> Edit
+                                </Link>
+                                {article.status === 'published' ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openDialog(
+                                        article.isFeatured
+                                          ? 'unfeature'
+                                          : 'feature',
+                                        article
+                                      )
+                                    }
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-amber-100 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
+                                  >
+                                    {article.isFeatured ? (
+                                      <StarOff size={15} />
+                                    ) : (
+                                      <Star size={15} />
+                                    )}
+                                    {article.isFeatured
+                                      ? 'Lepas Featured'
+                                      : 'Feature'}
+                                  </button>
+                                ) : null}
+                                {article.status === 'published' ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      openDialog('unpublish', article)
+                                    }
+                                    className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-100"
+                                  >
+                                    <Undo2 size={15} /> Unpublish
+                                  </button>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  onClick={() => openDialog('archive', article)}
+                                  className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
+                                >
+                                  <Archive size={15} /> Arsip
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="px-6 py-14">
+                            <div className="flex flex-col items-center text-center">
+                              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                                <Search size={24} />
+                              </div>
+                              <h3 className="text-base font-semibold text-slate-800">
+                                Tidak ada artikel yang cocok
+                              </h3>
+                              <p className="mt-1 max-w-sm text-sm text-slate-500">
+                                Coba ubah kata kunci pencarian atau filter
+                                status untuk melihat artikel lain.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+                {adminPagination ? (
+                  <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-slate-500">
+                      Menampilkan halaman{' '}
+                      <span className="font-semibold text-slate-800">
+                        {adminPagination.page}
+                      </span>{' '}
+                      dari{' '}
+                      <span className="font-semibold text-slate-800">
+                        {adminPagination.totalPages}
+                      </span>{' '}
+                      dengan total{' '}
+                      <span className="font-semibold text-slate-800">
+                        {adminPagination.totalItems}
+                      </span>{' '}
+                      artikel.
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAdminPage((current) => Math.max(1, current - 1))
+                        }
+                        disabled={adminPagination.page <= 1}
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-pulse/30 hover:text-pulse disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Sebelumnya
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAdminPage((current) =>
+                            Math.min(adminPagination.totalPages, current + 1)
+                          )
+                        }
+                        disabled={
+                          adminPagination.page >= adminPagination.totalPages
+                        }
+                        className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-pulse/30 hover:text-pulse disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Berikutnya
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -680,6 +1062,132 @@ export function ModerationPage() {
         isLoading={moderationDetailQuery.isLoading}
         onClose={() => setSelectedItem(null)}
       />
+
+      <ModalDialog
+        open={dialogState.open}
+        title={
+          dialogState.type === 'reject'
+            ? 'Tolak artikel'
+            : dialogState.type === 'archive'
+              ? 'Arsipkan artikel'
+              : dialogState.type === 'feature'
+                ? 'Jadikan featured'
+                : dialogState.type === 'unfeature'
+                  ? 'Lepas status featured'
+                  : 'Unpublish artikel'
+        }
+        description={
+          dialogState.type === 'reject'
+            ? 'Berikan alasan yang jelas agar kontributor tahu apa yang perlu diperbaiki.'
+            : dialogState.type === 'archive'
+              ? 'Artikel akan keluar dari workflow aktif dan disimpan sebagai arsip.'
+              : dialogState.type === 'feature'
+                ? 'Artikel ini akan ditonjolkan di feed edukasi.'
+                : dialogState.type === 'unfeature'
+                  ? 'Artikel ini tidak lagi muncul sebagai konten unggulan.'
+                  : 'Artikel published akan ditarik dari feed pembaca.'
+        }
+        confirmLabel={
+          dialogState.type === 'reject'
+            ? 'Kirim Penolakan'
+            : dialogState.type === 'archive'
+              ? 'Arsipkan'
+              : dialogState.type === 'feature'
+                ? 'Jadikan Featured'
+                : dialogState.type === 'unfeature'
+                  ? 'Lepas Featured'
+                  : 'Unpublish'
+        }
+        confirmTone={
+          dialogState.type === 'reject' ||
+          dialogState.type === 'archive' ||
+          dialogState.type === 'unpublish'
+            ? 'danger'
+            : 'pulse'
+        }
+        isPending={isDialogPending}
+        onClose={closeDialog}
+        onConfirm={() => {
+          const item = dialogState.item;
+          if (!item) {
+            return;
+          }
+
+          if (dialogState.type === 'reject') {
+            if (!rejectionReason.trim()) {
+              toast.error('Alasan penolakan masih kosong.');
+              return;
+            }
+
+            rejectMutation.mutate({
+              item,
+              reason: rejectionReason.trim()
+            });
+            return;
+          }
+
+          if (dialogState.type === 'archive') {
+            archiveMutation.mutate(item);
+            return;
+          }
+
+          if (dialogState.type === 'feature') {
+            featureMutation.mutate({
+              articleId: item.articleId,
+              featured: true,
+              featuredOrder: Number(featuredOrderInput || 1)
+            });
+            return;
+          }
+
+          if (dialogState.type === 'unfeature') {
+            featureMutation.mutate({
+              articleId: item.articleId,
+              featured: false,
+              featuredOrder: null
+            });
+            return;
+          }
+
+          unpublishMutation.mutate(item.articleId);
+        }}
+      >
+        {dialogState.type === 'reject' ? (
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wide text-slate-400">
+              Alasan penolakan
+            </label>
+            <textarea
+              rows={4}
+              value={rejectionReason}
+              onChange={(event) => setRejectionReason(event.target.value)}
+              placeholder="Tulis alasan penolakan yang membantu kontributor memperbaiki artikel."
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-pulse/30 focus:bg-white focus:ring-4 focus:ring-pulse/10"
+            />
+          </div>
+        ) : dialogState.type === 'feature' ? (
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wide text-slate-400">
+              Urutan featured
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="9999"
+              value={featuredOrderInput}
+              onChange={(event) => setFeaturedOrderInput(event.target.value)}
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-pulse/30 focus:bg-white focus:ring-4 focus:ring-pulse/10"
+            />
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
+            <span className="font-semibold text-slate-900">
+              {dialogState.item?.title}
+            </span>{' '}
+            akan diproses sesuai aksi yang dipilih admin.
+          </div>
+        )}
+      </ModalDialog>
     </>
   );
 }
