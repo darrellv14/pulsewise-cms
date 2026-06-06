@@ -1,9 +1,23 @@
-import { useGoogleLogin } from '@react-oauth/google';
 import { HeartPulse, Loader2, Lock, Mail } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { GOOGLE_CLIENT_ID } from '../config.js';
+
+const GOOGLE_OAUTH_STATE_KEY = 'pulsewise-cms-google-oauth-state';
+
+function buildGoogleOAuthState() {
+  if (window.crypto?.randomUUID) {
+    return window.crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function getGoogleRedirectUri() {
+  return `${window.location.origin}/login`;
+}
 
 export function LoginPage() {
   const { login, loginWithGoogle, isAuthenticated } = useAuth();
@@ -88,31 +102,81 @@ export function LoginPage() {
     }
   };
 
-  const googleLogin = useGoogleLogin({
-    flow: 'implicit',
-    scope: 'openid email profile',
-    onSuccess: (tokenResponse) => {
-      handleGoogleToken({ accessToken: tokenResponse?.access_token });
-    },
-    onError: () => {
-      const message = 'Login Google dibatalkan atau gagal.';
-      setError(message);
-      toast.error(message);
-      setGoogleSubmitting(false);
-    },
-    onNonOAuthError: (nonOAuthError) => {
+  useEffect(() => {
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace(/^#/, '')
+    );
+    const accessToken = hashParams.get('access_token');
+    const errorCode = hashParams.get('error');
+    const returnedState = hashParams.get('state');
+
+    if (!accessToken && !errorCode) {
+      return;
+    }
+
+    window.history.replaceState(
+      null,
+      document.title,
+      `${window.location.pathname}${window.location.search}`
+    );
+
+    const expectedState = window.sessionStorage.getItem(GOOGLE_OAUTH_STATE_KEY);
+    window.sessionStorage.removeItem(GOOGLE_OAUTH_STATE_KEY);
+
+    if (errorCode) {
       const message =
-        nonOAuthError?.type === 'popup_failed_to_open'
-          ? 'Popup Google diblokir browser. Izinkan pop-up untuk PulseWise CMS, lalu coba lagi.'
-          : 'Popup Google gagal dibuka. Coba matikan extension pemblokir popup sementara.';
+        errorCode === 'access_denied'
+          ? 'Login Google dibatalkan.'
+          : `Login Google gagal: ${errorCode}`;
 
       setError(message);
       toast.error(message);
       setGoogleSubmitting(false);
-    },
-    use_fedcm_for_prompt: true,
-    use_fedcm_for_button: true
-  });
+      return;
+    }
+
+    if (!expectedState || returnedState !== expectedState) {
+      const message = 'Sesi login Google tidak valid. Coba masuk ulang.';
+
+      setError(message);
+      toast.error(message);
+      setGoogleSubmitting(false);
+      return;
+    }
+
+    handleGoogleToken({ accessToken });
+    // The hash is only present on the Google redirect callback.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const beginGoogleRedirectLogin = () => {
+    if (!GOOGLE_CLIENT_ID) {
+      const message = 'Google OAuth belum dikonfigurasi untuk CMS.';
+      setError(message);
+      toast.error(message);
+      return;
+    }
+
+    setGoogleSubmitting(true);
+    setError('');
+
+    const state = buildGoogleOAuthState();
+    window.sessionStorage.setItem(GOOGLE_OAUTH_STATE_KEY, state);
+
+    const params = new URLSearchParams({
+      client_id: GOOGLE_CLIENT_ID,
+      redirect_uri: getGoogleRedirectUri(),
+      response_type: 'token',
+      scope: 'openid email profile',
+      include_granted_scopes: 'true',
+      prompt: 'select_account',
+      state
+    });
+
+    window.location.assign(
+      `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
+    );
+  };
 
   if (isAuthenticated) {
     return <Navigate to="/articles" replace />;
@@ -229,11 +293,7 @@ export function LoginPage() {
               <button
                 type="button"
                 disabled={submitting || googleSubmitting}
-                onClick={() => {
-                  setGoogleSubmitting(true);
-                  setError('');
-                  googleLogin();
-                }}
+                onClick={beginGoogleRedirectLogin}
                 className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <GoogleMark />
