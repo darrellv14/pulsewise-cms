@@ -127,7 +127,7 @@ function getAutosaveMessage(status, lastSavedAt) {
     })}`;
   }
 
-  return 'Saving';
+  return 'Siap menyimpan otomatis';
 }
 
 function UploadProgress({ label, progress, tone = 'pulse' }) {
@@ -432,7 +432,7 @@ export function ArticleForm({
                   ) : (
                     <Archive size={16} />
                   )}
-                  {archivePending ? 'Mengarsipkan...' : 'Arsipkan'}
+                  {archivePending ? 'Membuang...' : 'Buang'}
                 </button>
               ) : null}
 

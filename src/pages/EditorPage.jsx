@@ -8,8 +8,8 @@ import { ModalDialog } from '../components/ModalDialog.jsx';
 import { ArticleForm } from '../components/ArticleForm.jsx';
 import { NotFoundPage } from './NotFoundPage.jsx';
 import {
-  archiveArticle,
   createArticle,
+  deleteArticle,
   fetchAdminArticleDetail,
   fetchCategories,
   fetchMyArticleDetail,
@@ -73,10 +73,10 @@ export function EditorPage({ mode }) {
   const createDraftPromiseRef = useRef(null);
   const [loading, setLoading] = useState(mode === 'edit');
   const [error, setError] = useState(null);
-  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const autosaveMutateAsyncRef = useRef(null);
   const submitMutateAsyncRef = useRef(null);
-  const archiveMutateAsyncRef = useRef(null);
+  const deleteMutateAsyncRef = useRef(null);
 
   useEffect(() => {
     draftArticleIdRef.current = draftArticleId;
@@ -84,6 +84,7 @@ export function EditorPage({ mode }) {
 
   const invalidateEducationCollections = () => {
     queryClient.invalidateQueries({ queryKey: ['education', 'my-articles'] });
+    queryClient.invalidateQueries({ queryKey: ['education', 'admin-articles'] });
     queryClient.invalidateQueries({
       queryKey: ['education', 'moderation-articles']
     });
@@ -117,10 +118,7 @@ export function EditorPage({ mode }) {
     onSuccess: (result) => {
       if (result?.articleId && result.articleId !== draftArticleId) {
         setDraftArticleId(result.articleId);
-        setArticle((current) => current || result);
-        navigate(`/editor/${result.articleId}`, { replace: true });
       }
-      invalidateEducationCollections();
     }
   });
 
@@ -161,23 +159,25 @@ export function EditorPage({ mode }) {
     }
   });
 
-  const archiveMutation = useMutation({
-    mutationFn: archiveArticle,
+  const deleteMutation = useMutation({
+    mutationFn: deleteArticle,
     onSuccess: () => {
+      setDeleteDialogOpen(false);
       invalidateEducationCollections();
-      toast.success('Artikel berhasil diarsipkan.');
+      toast.success('Artikel berhasil dihapus permanen.');
       navigate('/my-articles', { replace: true });
     },
     onError: (requestError) => {
       const message =
-        requestError?.response?.data?.message || 'Artikel gagal diarsipkan.';
+        requestError?.response?.data?.message ||
+        'Artikel gagal dihapus permanen.';
       toast.error(message);
     }
   });
 
   autosaveMutateAsyncRef.current = autosaveMutation.mutateAsync;
   submitMutateAsyncRef.current = submitMutation.mutateAsync;
-  archiveMutateAsyncRef.current = archiveMutation.mutateAsync;
+  deleteMutateAsyncRef.current = deleteMutation.mutateAsync;
 
   const handleAutosave = useCallback(
     async (payload) =>
@@ -191,11 +191,11 @@ export function EditorPage({ mode }) {
     []
   );
 
-  const handleArchive = useCallback(async () => {
+  const handleDelete = useCallback(async () => {
     if (!draftArticleIdRef.current) {
       return;
     }
-    await archiveMutateAsyncRef.current?.(draftArticleIdRef.current);
+    await deleteMutateAsyncRef.current?.(draftArticleIdRef.current);
   }, []);
 
   useEffect(() => {
@@ -271,8 +271,8 @@ export function EditorPage({ mode }) {
           tagOptions={DEFAULT_TAG_OPTIONS}
           initialValue={article}
           submitPending={submitMutation.isPending}
-          archivePending={archiveMutation.isPending}
-          showArchiveAction={user?.role === 'admin' && mode === 'edit'}
+          archivePending={deleteMutation.isPending}
+          showArchiveAction={user?.role === 'admin' && Boolean(draftArticleId)}
           submitLabel={
             article?.status === 'published'
               ? 'Kirim Revisi'
@@ -289,26 +289,23 @@ export function EditorPage({ mode }) {
           }
           onAutosave={handleAutosave}
           onSubmitReview={handleSubmitReview}
-          onArchive={() => setArchiveDialogOpen(true)}
+          onArchive={() => setDeleteDialogOpen(true)}
         />
       </div>
 
       <ModalDialog
-        open={archiveDialogOpen}
-        title="Arsipkan artikel"
-        description="Artikel akan keluar dari antrean moderasi dan tidak tampil di feed publikasi."
-        confirmLabel="Arsipkan"
+        open={deleteDialogOpen}
+        title="Buang artikel permanen"
+        description="Artikel ini akan dihapus permanen dari CMS dan tidak bisa dipulihkan."
+        confirmLabel="Buang Permanen"
         confirmTone="danger"
-        isPending={archiveMutation.isPending}
-        onClose={() => setArchiveDialogOpen(false)}
-        onConfirm={async () => {
-          await handleArchive();
-          setArchiveDialogOpen(false);
-        }}
+        isPending={deleteMutation.isPending}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleDelete}
       >
         <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
-          Aksi ini ditujukan untuk admin. Artikel tetap tersimpan di sistem
-          sebagai arsip, tetapi tidak lagi aktif di workflow publikasi.
+          Aksi ini ditujukan untuk admin. Artikel, revisi, komentar, likes, dan
+          relasi CMS terkait akan ikut dihapus permanen.
         </div>
       </ModalDialog>
     </div>

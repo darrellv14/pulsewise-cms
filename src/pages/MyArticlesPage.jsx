@@ -15,7 +15,7 @@ import { toast } from 'sonner';
 import { ErrorState, InlineLoader } from '../components/AsyncState.jsx';
 import { ModalDialog } from '../components/ModalDialog.jsx';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { archiveArticle, fetchMyArticles } from '../lib/educationApi.js';
+import { deleteArticle, fetchMyArticles } from '../lib/educationApi.js';
 import { educationKeys } from '../lib/queryKeys.js';
 
 const STATUS_TABS = [
@@ -62,7 +62,7 @@ export function MyArticlesPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [status, setStatus] = useState('draft');
-  const [articleToArchive, setArticleToArchive] = useState(null);
+  const [articleToDelete, setArticleToDelete] = useState(null);
 
   const query = useQuery({
     queryKey: educationKeys.myArticles({ status, page: 1, limit: 10 }),
@@ -78,13 +78,15 @@ export function MyArticlesPage() {
   }, [query.error]);
 
   const state = query.data || { items: [], pagination: {} };
-  const canArchiveArticles = user?.role === 'admin';
+  const canDeleteArticles = user?.role === 'admin';
 
-  const archiveMutation = useMutation({
-    mutationFn: archiveArticle,
+  const deleteMutation = useMutation({
+    mutationFn: deleteArticle,
     onSuccess: () => {
-      toast.success('Artikel berhasil diarsipkan.');
+      setArticleToDelete(null);
+      toast.success('Artikel berhasil dihapus permanen.');
       queryClient.invalidateQueries({ queryKey: ['education', 'my-articles'] });
+      queryClient.invalidateQueries({ queryKey: ['education', 'admin-articles'] });
       queryClient.invalidateQueries({
         queryKey: ['education', 'moderation-articles']
       });
@@ -93,12 +95,12 @@ export function MyArticlesPage() {
       });
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, 'Artikel gagal diarsipkan.'));
+      toast.error(getErrorMessage(error, 'Artikel gagal dihapus permanen.'));
     }
   });
 
-  const handleArchiveArticle = (article) => {
-    setArticleToArchive(article);
+  const handleDeleteArticle = (article) => {
+    setArticleToDelete(article);
   };
 
   return (
@@ -198,12 +200,12 @@ export function MyArticlesPage() {
                     >
                       <Edit2 size={16} />
                     </Link>
-                    {canArchiveArticles ? (
+                    {canDeleteArticles ? (
                       <button
-                        onClick={() => handleArchiveArticle(article)}
-                        disabled={archiveMutation.isPending}
+                        onClick={() => handleDeleteArticle(article)}
+                        disabled={deleteMutation.isPending}
                         className="p-2 text-slate-400 hover:text-red-600 bg-slate-50 rounded-lg transition-colors disabled:opacity-60"
-                        title="Arsipkan artikel"
+                        title="Buang artikel permanen"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -284,12 +286,12 @@ export function MyArticlesPage() {
                         >
                           <Edit2 size={16} />
                         </Link>
-                        {canArchiveArticles ? (
+                        {canDeleteArticles ? (
                           <button
-                            onClick={() => handleArchiveArticle(article)}
-                            disabled={archiveMutation.isPending}
+                            onClick={() => handleDeleteArticle(article)}
+                            disabled={deleteMutation.isPending}
                             className="p-2 text-slate-400 hover:text-red-600 bg-white hover:bg-red-50 border border-slate-200 hover:border-red-200 rounded-lg transition-all shadow-sm disabled:opacity-60"
-                            title="Arsipkan artikel"
+                            title="Buang artikel permanen"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -325,30 +327,29 @@ export function MyArticlesPage() {
       )}
 
       <ModalDialog
-        open={Boolean(articleToArchive)}
-        title="Arsipkan artikel"
+        open={Boolean(articleToDelete)}
+        title="Buang artikel permanen"
         description={
-          articleToArchive
-            ? `Artikel "${articleToArchive.title}" akan keluar dari antrean dan feed publikasi.`
+          articleToDelete
+            ? `Artikel "${articleToDelete.title}" akan dihapus permanen dari CMS.`
             : ''
         }
-        confirmLabel="Arsipkan"
+        confirmLabel="Buang Permanen"
         confirmTone="danger"
-        isPending={archiveMutation.isPending}
-        onClose={() => setArticleToArchive(null)}
+        isPending={deleteMutation.isPending}
+        onClose={() => setArticleToDelete(null)}
         onConfirm={() => {
-          if (!articleToArchive) {
+          if (!articleToDelete) {
             return;
           }
 
-          archiveMutation.mutate(articleToArchive.articleId, {
-            onSuccess: () => setArticleToArchive(null)
-          });
+          deleteMutation.mutate(articleToDelete.articleId);
         }}
       >
         <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
-          Aksi ini hanya tersedia untuk admin. Artikel akan tetap ada sebagai
-          arsip, tetapi tidak lagi aktif untuk pembaca atau moderasi.
+          Aksi ini hanya tersedia untuk admin dan tidak bisa dibatalkan.
+          Artikel, revisi, komentar, likes, dan relasi CMS terkait akan ikut
+          dihapus permanen.
         </div>
       </ModalDialog>
     </div>

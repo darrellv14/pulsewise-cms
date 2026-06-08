@@ -6,20 +6,18 @@ import { ErrorState, InlineLoader } from '../components/AsyncState.jsx';
 import { MdxContent } from '../components/MdxContent.jsx';
 import { ModalDialog } from '../components/ModalDialog.jsx';
 import {
-  archiveArticle,
   approveArticle,
   approveRevision,
+  deleteArticle,
   featureArticle,
   fetchAdminArticles,
   fetchAdminArticleDetail,
   fetchPendingArticles,
   fetchPendingRevisions,
   rejectArticle,
-  rejectRevision,
-  unpublishArticle
+  rejectRevision
 } from '../lib/educationApi.js';
 import {
-  Archive,
   ArrowRight,
   Eye,
   Pencil,
@@ -27,7 +25,7 @@ import {
   ShieldCheck,
   Star,
   StarOff,
-  Undo2,
+  Trash2,
   X
 } from 'lucide-react';
 import { educationKeys } from '../lib/queryKeys.js';
@@ -76,9 +74,7 @@ const ADMIN_STATUS_OPTIONS = [
   { value: 'draft', label: 'Draft' },
   { value: 'pending_review', label: 'Pending Review' },
   { value: 'published', label: 'Published' },
-  { value: 'rejected', label: 'Rejected' },
-  { value: 'archived', label: 'Archived' },
-  { value: 'unpublished', label: 'Unpublished' }
+  { value: 'rejected', label: 'Rejected' }
 ];
 
 function ArticleStatusBadge({ status }) {
@@ -582,18 +578,19 @@ export function ModerationPage() {
     }
   });
 
-  const archiveMutation = useMutation({
-    mutationFn: async (item) => archiveArticle(item.articleId),
+  const deleteMutation = useMutation({
+    mutationFn: async (item) => deleteArticle(item.articleId),
     onSuccess: (_data, item) => {
-      toast.success(`${item._type} berhasil diarsipkan.`);
+      toast.success(`${item._type} berhasil dihapus permanen.`);
       invalidateModeration();
       setSelectedItem(null);
+      setDialogState({ open: false, type: null, item: null });
     },
     onError: (error, item) => {
       toast.error(
         getErrorMessage(
           error,
-          `Gagal mengarsipkan ${item._type.toLowerCase()}.`
+          `Gagal menghapus ${item._type.toLowerCase()}.`
         )
       );
     }
@@ -616,24 +613,11 @@ export function ModerationPage() {
     }
   });
 
-  const unpublishMutation = useMutation({
-    mutationFn: async (articleId) => unpublishArticle(articleId),
-    onSuccess: () => {
-      toast.success('Artikel berhasil di-unpublish.');
-      invalidateModeration();
-      setDialogState({ open: false, type: null, item: null });
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error, 'Artikel gagal di-unpublish.'));
-    }
-  });
-
   const isDialogPending =
     approveMutation.isPending ||
     rejectMutation.isPending ||
-    archiveMutation.isPending ||
-    featureMutation.isPending ||
-    unpublishMutation.isPending;
+    deleteMutation.isPending ||
+    featureMutation.isPending;
   const adminArticles = adminArticlesQuery.data?.items || [];
   const adminPagination = adminArticlesQuery.data?.pagination;
 
@@ -647,9 +631,8 @@ export function ModerationPage() {
     if (
       approveMutation.isPending ||
       rejectMutation.isPending ||
-      archiveMutation.isPending ||
-      featureMutation.isPending ||
-      unpublishMutation.isPending
+      deleteMutation.isPending ||
+      featureMutation.isPending
     ) {
       return;
     }
@@ -670,8 +653,8 @@ export function ModerationPage() {
               </h1>
             </div>
             <p className="text-slate-500 text-sm">
-              Satu panel kerja untuk review, edit, feature, unpublish, dan
-              arsip artikel edukasi.
+              Satu panel kerja untuk review, edit, feature, dan buang permanen
+              artikel edukasi.
             </p>
           </div>
         </div>
@@ -788,11 +771,11 @@ export function ModerationPage() {
                           </button>
                           {item._type === 'Artikel Baru' ? (
                             <button
-                              onClick={() => openDialog('archive', item)}
+                              onClick={() => openDialog('delete', item)}
                               className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:border-red-200 hover:bg-red-100 disabled:opacity-60"
                               disabled={isDialogPending}
                             >
-                              <Archive size={15} /> Arsip
+                              <Trash2 size={15} /> Buang
                             </button>
                           ) : null}
                         </div>
@@ -962,23 +945,12 @@ export function ModerationPage() {
                                       : 'Feature'}
                                   </button>
                                 ) : null}
-                                {article.status === 'published' ? (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      openDialog('unpublish', article)
-                                    }
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-100 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 transition-colors hover:bg-indigo-100"
-                                  >
-                                    <Undo2 size={15} /> Unpublish
-                                  </button>
-                                ) : null}
                                 <button
                                   type="button"
-                                  onClick={() => openDialog('archive', article)}
+                                  onClick={() => openDialog('delete', article)}
                                   className="inline-flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition-colors hover:bg-red-100"
                                 >
-                                  <Archive size={15} /> Arsip
+                                  <Trash2 size={15} /> Buang
                                 </button>
                               </div>
                             </td>
@@ -1068,40 +1040,39 @@ export function ModerationPage() {
         title={
           dialogState.type === 'reject'
             ? 'Tolak artikel'
-            : dialogState.type === 'archive'
-              ? 'Arsipkan artikel'
+            : dialogState.type === 'delete'
+              ? 'Buang artikel permanen'
               : dialogState.type === 'feature'
                 ? 'Jadikan featured'
                 : dialogState.type === 'unfeature'
                   ? 'Lepas status featured'
-                  : 'Unpublish artikel'
+                  : 'Aksi artikel'
         }
         description={
           dialogState.type === 'reject'
             ? 'Berikan alasan yang jelas agar kontributor tahu apa yang perlu diperbaiki.'
-            : dialogState.type === 'archive'
-              ? 'Artikel akan keluar dari workflow aktif dan disimpan sebagai arsip.'
+            : dialogState.type === 'delete'
+              ? 'Artikel ini akan dihapus permanen dari CMS dan tidak bisa dipulihkan.'
               : dialogState.type === 'feature'
                 ? 'Artikel ini akan ditonjolkan di feed edukasi.'
                 : dialogState.type === 'unfeature'
                   ? 'Artikel ini tidak lagi muncul sebagai konten unggulan.'
-                  : 'Artikel published akan ditarik dari feed pembaca.'
+                  : 'Konfirmasi aksi artikel.'
         }
         confirmLabel={
           dialogState.type === 'reject'
             ? 'Kirim Penolakan'
-            : dialogState.type === 'archive'
-              ? 'Arsipkan'
+            : dialogState.type === 'delete'
+              ? 'Buang Permanen'
               : dialogState.type === 'feature'
                 ? 'Jadikan Featured'
                 : dialogState.type === 'unfeature'
                   ? 'Lepas Featured'
-                  : 'Unpublish'
+                  : 'Lanjutkan'
         }
         confirmTone={
           dialogState.type === 'reject' ||
-          dialogState.type === 'archive' ||
-          dialogState.type === 'unpublish'
+          dialogState.type === 'delete'
             ? 'danger'
             : 'pulse'
         }
@@ -1126,8 +1097,8 @@ export function ModerationPage() {
             return;
           }
 
-          if (dialogState.type === 'archive') {
-            archiveMutation.mutate(item);
+          if (dialogState.type === 'delete') {
+            deleteMutation.mutate(item);
             return;
           }
 
@@ -1149,7 +1120,6 @@ export function ModerationPage() {
             return;
           }
 
-          unpublishMutation.mutate(item.articleId);
         }}
       >
         {dialogState.type === 'reject' ? (
@@ -1180,11 +1150,12 @@ export function ModerationPage() {
             />
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
+          <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm leading-6 text-red-700">
             <span className="font-semibold text-slate-900">
               {dialogState.item?.title}
             </span>{' '}
-            akan diproses sesuai aksi yang dipilih admin.
+            akan diproses sesuai aksi yang dipilih admin. Untuk buang
+            permanen, artikel dan relasi CMS terkait akan ikut terhapus.
           </div>
         )}
       </ModalDialog>

@@ -182,19 +182,8 @@ export async function featureArticle(
   return response.data.data;
 }
 
-export async function archiveArticle(articleId) {
-  const response = await apiClient.post(
-    `/admin/education/articles/${articleId}/archive`,
-    {}
-  );
-  return response.data.data;
-}
-
-export async function unpublishArticle(articleId) {
-  const response = await apiClient.post(
-    `/admin/education/articles/${articleId}/unpublish`,
-    {}
-  );
+export async function deleteArticle(articleId) {
+  const response = await apiClient.delete(`/admin/education/articles/${articleId}`);
   return response.data.data;
 }
 
