@@ -188,51 +188,48 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <div className="flex w-full max-w-200 flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl md:flex-row">
-        <div className="relative flex flex-col justify-between overflow-hidden bg-linear-to-br from-pulse to-pulse-dark p-10 text-white md:w-5/12">
-          <div className="relative z-10 mb-12 flex items-center gap-3">
-            <div className="inline-flex rounded-2xl bg-white/95 px-4 py-3 shadow-lg shadow-black/10 ring-1 ring-white/70 backdrop-blur-sm">
-              <img
-                src={PULSEWISE_LOGO_FULL_URL}
-                alt="PulseWise"
-                className="h-12 w-auto max-w-52 object-contain"
-              />
-            </div>
-          </div>
+      <div className="flex w-full max-w-260 flex-col overflow-hidden rounded-4xl border border-slate-200/60 bg-white shadow-2xl md:flex-row">
+        <div className="relative flex w-full flex-col justify-between overflow-hidden border-r border-slate-100 bg-slate-50 p-10 md:w-5/12">
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]" />
 
           <div className="relative z-10">
-            <h2 className="mb-4 text-3xl font-extrabold leading-tight">
+            <img
+              src={PULSEWISE_LOGO_FULL_URL}
+              alt="PulseWise"
+              className="h-10 w-auto object-contain"
+            />
+          </div>
+
+          <div className="relative z-10 mb-4 mt-20">
+            <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900">
               Editorial workspace untuk edukasi.
             </h2>
-            <p className="text-sm leading-relaxed text-pulse-100">
+            <p className="text-base leading-relaxed text-slate-600">
               Tulis artikel, ajukan review, moderasi konten, dan kelola cover
               image dalam satu panel kerja terpadu.
             </p>
           </div>
-
-          <div className="pointer-events-none absolute right-0 top-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-white/10 blur-3xl" />
-          <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-48 -translate-x-1/2 translate-y-1/2 rounded-full bg-black/10 blur-2xl" />
         </div>
 
-        <div className="p-8 md:w-7/12 md:p-12">
-          <div className="mx-auto max-w-sm">
+        <div className="flex w-full flex-col justify-center p-8 md:w-7/12 md:p-12 lg:p-16">
+          <div className="mx-auto w-full max-w-md">
             <div className="mb-8">
               <img
                 src={PULSEWISE_LOGO_ICON_URL}
                 alt="PulseWise icon"
-                className="mb-4 h-14 w-14 rounded-2xl bg-white object-contain p-1 shadow-sm"
+                className="mb-6 h-14 w-14 rounded-2xl bg-white object-contain p-2 shadow-sm ring-1 ring-slate-200"
               />
               <h3 className="text-2xl font-bold text-slate-900">
                 Masuk ke CMS
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                Gunakan akun PulseWise Anda.
+                Gunakan kredensial akun administrator Anda.
               </p>
             </div>
 
             <form className="space-y-5" onSubmit={handleNormalLogin}>
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-slate-700">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
                   Email Address
                 </label>
 
@@ -248,13 +245,13 @@ export function LoginPage() {
                     type="email"
                     required
                     placeholder="nama@email.com"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
                   />
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-slate-700">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
                   Password
                 </label>
 
@@ -269,8 +266,8 @@ export function LoginPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     type="password"
                     required
-                    placeholder="********"
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium text-slate-800 outline-none transition-all focus:border-pulse/30 focus:ring-4 focus:ring-pulse/10"
+                    placeholder="••••••••"
+                    className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
                   />
                 </div>
               </div>
@@ -284,7 +281,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={submitting || googleSubmitting || !email || !password}
-                className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-pulse py-3.5 font-bold text-white shadow-sm transition-colors hover:bg-pulse-dark disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-rose-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-rose-600/30 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {submitting ? (
                   <>
@@ -297,7 +294,7 @@ export function LoginPage() {
               </button>
             </form>
 
-            <div className="my-5 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+            <div className="my-6 flex items-center gap-4">
               <span className="h-px flex-1 bg-slate-200" />
               <span>atau</span>
               <span className="h-px flex-1 bg-slate-200" />
@@ -308,7 +305,7 @@ export function LoginPage() {
                 type="button"
                 disabled={submitting || googleSubmitting}
                 onClick={beginGoogleRedirectLogin}
-                className="flex min-h-12 w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <GoogleMark />
                 Masuk Dengan Google

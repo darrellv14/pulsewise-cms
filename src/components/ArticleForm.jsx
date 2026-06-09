@@ -402,14 +402,14 @@ export function ArticleForm({
 
   return (
     <div className="flex flex-col relative">
-      <div className="sticky top-0 sm:top-16 z-20 border-b border-slate-100 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85">
+      <div className="sticky top-0 sm:top-16 z-20 border-b border-slate-100 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/85">
         <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
           <div className="flex items-start gap-3 sm:items-center min-w-0">
             <div
               className={`mt-1 sm:mt-0 w-2.5 h-2.5 shrink-0 rounded-full ${autosaveStatus === 'error' ? 'bg-red-400' : autosaveStatus === 'saving' ? 'bg-amber-400' : 'bg-emerald-400'}`}
               title="Autosave"
             ></div>
-            <span className="text-xs sm:text-sm font-medium text-slate-500 leading-5 sm:leading-normal break-words">
+            <span className="text-xs sm:text-sm font-medium text-slate-500 leading-5 sm:leading-normal wrap-break-word">
               {getAutosaveMessage(autosaveStatus, lastSavedAt)}
             </span>
           </div>

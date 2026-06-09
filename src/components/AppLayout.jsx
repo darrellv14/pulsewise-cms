@@ -110,19 +110,19 @@ export function AppLayout() {
       <aside
         className={`fixed inset-y-0 left-0 z-40 bg-white w-64 border-r border-slate-200 transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:flex md:flex-col ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="hidden md:flex p-6 items-center gap-3 border-b border-slate-100">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pulse/8 p-2">
+        <div className="hidden md:flex items-center gap-3 border-b border-slate-100 px-5 py-5">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-pulse/8 p-2">
             <img
               src={PULSEWISE_LOGO_ICON_URL}
               alt="PulseWise icon"
               className="h-full w-full object-contain"
             />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <img
               src={PULSEWISE_LOGO_FULL_URL}
               alt="PulseWise"
-              className="h-7 w-auto object-contain"
+              className="h-6 w-auto max-w-33 object-contain object-left"
             />
             <p className="text-xs text-slate-400 font-medium tracking-wide">
               Workspace

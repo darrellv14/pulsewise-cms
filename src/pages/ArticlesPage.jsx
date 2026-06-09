@@ -79,26 +79,37 @@ export function ArticlesPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
-      <section className="bg-linear-to-br from-pulse to-pulse-dark rounded-3xl p-8 sm:p-12 text-white shadow-lg relative overflow-hidden">
-        <div className="relative z-10 max-w-2xl space-y-4">
-          <img
-            src={PULSEWISE_LOGO_FULL_URL}
-            alt="PulseWise"
-            className="h-10 w-auto object-contain"
-          />
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
-            Pusat Edukasi & Kesehatan Berbasis Klinis
-          </h1>
-          <p className="text-pulse-100 text-sm sm:text-base max-w-xl">
-            Eksplorasi ribuan artikel terpercaya untuk gaya hidup sehat Anda.
-            Temukan info terbaru seputar medis dan keseharian.
-          </p>
-          <div className="pt-4">
+      <section className="relative overflow-hidden rounded-4xl bg-linear-to-br from-rose-500 to-rose-700 p-8 shadow-2xl sm:p-12 md:p-16">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
+
+        <div className="relative z-10 flex max-w-2xl flex-col items-start gap-6">
+          <div className="inline-flex rounded-2xl bg-white/10 p-4 shadow-sm ring-1 ring-white/20 backdrop-blur-md">
+            <img
+              src={PULSEWISE_LOGO_FULL_URL}
+              alt="PulseWise"
+              className="h-8 w-auto object-contain brightness-0 invert"
+            />
+          </div>
+
+          <div className="space-y-4">
+            <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl md:leading-[1.1]">
+              Pusat Edukasi & Kesehatan Berbasis Klinis
+            </h1>
+            <p className="max-w-xl text-lg leading-relaxed text-rose-100/90">
+              Eksplorasi artikel terpercaya untuk gaya hidup sehat Anda.
+              Temukan info terbaru seputar medis dan kesehatan jantung.
+            </p>
+          </div>
+
+          <div className="pt-2">
             <Link
               to="/editor/new"
-              className="inline-flex items-center gap-2 bg-white text-pulse hover:bg-slate-50 font-bold px-6 py-3 rounded-xl transition-colors shadow-sm"
+              className="group inline-flex items-center gap-2 rounded-xl bg-white px-7 py-3.5 text-sm font-bold text-rose-600 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-white/30"
             >
-              <Plus size={18} />
+              <Plus
+                size={18}
+                className="transition-transform group-hover:rotate-90"
+              />
               Mulai Menulis
             </Link>
           </div>
