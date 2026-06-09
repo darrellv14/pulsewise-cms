@@ -1,6 +1,7 @@
-import { Compass, HeartPulse, Home, LogIn } from 'lucide-react';
+import { Compass, Home, LogIn } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
+import { PULSEWISE_LOGO_FULL_URL, PULSEWISE_LOGO_ICON_URL } from '../config.js';
 
 export function NotFoundPage() {
   const { isAuthenticated } = useAuth();
@@ -8,13 +9,19 @@ export function NotFoundPage() {
   return (
     <div className="min-h-[calc(100vh-10rem)] flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-3xl rounded-[32px] border border-slate-200 bg-white px-8 py-14 text-center shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
-        <div className="mx-auto mb-6 flex h-18 w-18 items-center justify-center rounded-full bg-pulse/10 text-pulse">
-          <HeartPulse size={34} />
+        <div className="mx-auto mb-6 flex h-18 w-18 items-center justify-center rounded-3xl bg-pulse/8 p-3">
+          <img
+            src={PULSEWISE_LOGO_ICON_URL}
+            alt="PulseWise icon"
+            className="h-full w-full object-contain"
+          />
         </div>
 
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.28em] text-pulse">
-          PulseWise CMS
-        </p>
+        <img
+          src={PULSEWISE_LOGO_FULL_URL}
+          alt="PulseWise"
+          className="mx-auto mb-4 h-10 w-auto object-contain"
+        />
         <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
           Halaman tidak ditemukan
         </h1>

@@ -12,6 +12,7 @@ import {
   fetchCategories,
   fetchPublishedArticles
 } from '../lib/educationApi.js';
+import { PULSEWISE_LOGO_FULL_URL } from '../config.js';
 import { Search, Filter, Plus, Flame, Clock } from 'lucide-react';
 
 function getErrorMessage(error, fallback) {
@@ -80,9 +81,11 @@ export function ArticlesPage() {
     <div className="max-w-7xl mx-auto space-y-8 pb-12">
       <section className="bg-linear-to-br from-pulse to-pulse-dark rounded-3xl p-8 sm:p-12 text-white shadow-lg relative overflow-hidden">
         <div className="relative z-10 max-w-2xl space-y-4">
-          <span className="inline-block bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
-            PulseWise Education
-          </span>
+          <img
+            src={PULSEWISE_LOGO_FULL_URL}
+            alt="PulseWise"
+            className="h-10 w-auto object-contain"
+          />
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
             Pusat Edukasi & Kesehatan Berbasis Klinis
           </h1>

@@ -1,4 +1,4 @@
-﻿import {
+import {
   BookOpen,
   FilePenLine,
   LogOut,
@@ -91,10 +91,11 @@ export function AppLayout() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-2 text-pulse font-bold text-lg">
-          <HeartPulse size={24} />
-          <span>PulseWise</span>
-        </div>
+        <img
+          src={PULSEWISE_LOGO_FULL_URL}
+          alt="PulseWise"
+          className="h-8 w-auto max-w-36 object-contain"
+        />
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="text-slate-600"
@@ -107,13 +108,19 @@ export function AppLayout() {
         className={`fixed inset-y-0 left-0 z-40 bg-white w-64 border-r border-slate-200 transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:flex md:flex-col ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="hidden md:flex p-6 items-center gap-3 border-b border-slate-100">
-          <div className="bg-pulse/10 p-2 rounded-xl text-pulse">
-            <HeartPulse size={24} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-pulse/8 p-2">
+            <img
+              src={PULSEWISE_LOGO_ICON_URL}
+              alt="PulseWise icon"
+              className="h-full w-full object-contain"
+            />
           </div>
           <div>
-            <h1 className="font-bold text-slate-800 text-lg leading-tight">
-              PW CMS
-            </h1>
+            <img
+              src={PULSEWISE_LOGO_FULL_URL}
+              alt="PulseWise"
+              className="h-7 w-auto object-contain"
+            />
             <p className="text-xs text-slate-400 font-medium tracking-wide">
               Workspace
             </p>

@@ -1,9 +1,13 @@
-import { HeartPulse, Loader2, Lock, Mail } from 'lucide-react';
+import { Loader2, Lock, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthContext.jsx';
-import { GOOGLE_CLIENT_ID } from '../config.js';
+import {
+  GOOGLE_CLIENT_ID,
+  PULSEWISE_LOGO_FULL_URL,
+  PULSEWISE_LOGO_ICON_URL
+} from '../config.js';
 
 const GOOGLE_OAUTH_STATE_KEY = 'pulsewise-cms-google-oauth-state';
 
@@ -187,8 +191,11 @@ export function LoginPage() {
       <div className="flex w-full max-w-200 flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl md:flex-row">
         <div className="relative flex flex-col justify-between overflow-hidden bg-linear-to-br from-pulse to-pulse-dark p-10 text-white md:w-5/12">
           <div className="relative z-10 mb-12 flex items-center gap-3">
-            <HeartPulse size={32} />
-            <h1 className="text-2xl font-bold tracking-tight">PulseWise</h1>
+            <img
+              src={PULSEWISE_LOGO_FULL_URL}
+              alt="PulseWise"
+              className="h-12 w-auto max-w-52 object-contain"
+            />
           </div>
 
           <div className="relative z-10">
@@ -208,6 +215,11 @@ export function LoginPage() {
         <div className="p-8 md:w-7/12 md:p-12">
           <div className="mx-auto max-w-sm">
             <div className="mb-8">
+              <img
+                src={PULSEWISE_LOGO_ICON_URL}
+                alt="PulseWise icon"
+                className="mb-4 h-14 w-14 rounded-2xl bg-white object-contain p-1 shadow-sm"
+              />
               <h3 className="text-2xl font-bold text-slate-900">
                 Masuk ke CMS
               </h3>
