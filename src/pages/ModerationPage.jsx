@@ -9,7 +9,6 @@ import {
   approveArticle,
   approveRevision,
   deleteArticle,
-  featureArticle,
   fetchAdminArticles,
   fetchAdminArticleDetail,
   fetchPendingArticles,
@@ -23,8 +22,6 @@ import {
   Pencil,
   Search,
   ShieldCheck,
-  Star,
-  StarOff,
   Trash2,
   X
 } from 'lucide-react';
@@ -418,7 +415,6 @@ export function ModerationPage() {
     item: null
   });
   const [rejectionReason, setRejectionReason] = useState('');
-  const [featuredOrderInput, setFeaturedOrderInput] = useState('1');
 
   const pendingArticlesQuery = useQuery({
     queryKey: educationKeys.moderationArticles({ page: 1, limit: 20 }),
@@ -596,50 +592,29 @@ export function ModerationPage() {
     }
   });
 
-  const featureMutation = useMutation({
-    mutationFn: async ({ articleId, featured, featuredOrder }) =>
-      featureArticle(articleId, featured, featuredOrder),
-    onSuccess: (_data, variables) => {
-      toast.success(
-        variables.featured
-          ? 'Artikel berhasil ditandai sebagai featured.'
-          : 'Status featured artikel berhasil dilepas.'
-      );
-      invalidateModeration();
-      setDialogState({ open: false, type: null, item: null });
-    },
-    onError: (error) => {
-      toast.error(getErrorMessage(error, 'Status featured gagal diperbarui.'));
-    }
-  });
-
   const isDialogPending =
     approveMutation.isPending ||
     rejectMutation.isPending ||
-    deleteMutation.isPending ||
-    featureMutation.isPending;
+    deleteMutation.isPending;
   const adminArticles = adminArticlesQuery.data?.items || [];
   const adminPagination = adminArticlesQuery.data?.pagination;
 
   const openDialog = (type, item) => {
     setDialogState({ open: true, type, item });
     setRejectionReason('');
-    setFeaturedOrderInput(String(item?.featuredOrder || 1));
   };
 
   const closeDialog = () => {
     if (
       approveMutation.isPending ||
       rejectMutation.isPending ||
-      deleteMutation.isPending ||
-      featureMutation.isPending
+      deleteMutation.isPending
     ) {
       return;
     }
 
     setDialogState({ open: false, type: null, item: null });
     setRejectionReason('');
-    setFeaturedOrderInput('1');
   };
 
   return (
@@ -922,29 +897,6 @@ export function ModerationPage() {
                                 >
                                   <Pencil size={15} /> Edit
                                 </Link>
-                                {article.status === 'published' ? (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      openDialog(
-                                        article.isFeatured
-                                          ? 'unfeature'
-                                          : 'feature',
-                                        article
-                                      )
-                                    }
-                                    className="inline-flex items-center gap-1.5 rounded-lg border border-amber-100 bg-amber-50 px-3 py-1.5 text-sm font-medium text-amber-700 transition-colors hover:bg-amber-100"
-                                  >
-                                    {article.isFeatured ? (
-                                      <StarOff size={15} />
-                                    ) : (
-                                      <Star size={15} />
-                                    )}
-                                    {article.isFeatured
-                                      ? 'Lepas Featured'
-                                      : 'Feature'}
-                                  </button>
-                                ) : null}
                                 <button
                                   type="button"
                                   onClick={() => openDialog('delete', article)}
@@ -1042,33 +994,21 @@ export function ModerationPage() {
             ? 'Tolak artikel'
             : dialogState.type === 'delete'
               ? 'Buang artikel permanen'
-              : dialogState.type === 'feature'
-                ? 'Jadikan featured'
-                : dialogState.type === 'unfeature'
-                  ? 'Lepas status featured'
-                  : 'Aksi artikel'
+              : 'Aksi artikel'
         }
         description={
           dialogState.type === 'reject'
             ? 'Berikan alasan yang jelas agar kontributor tahu apa yang perlu diperbaiki.'
             : dialogState.type === 'delete'
               ? 'Artikel ini akan dihapus permanen dari CMS dan tidak bisa dipulihkan.'
-              : dialogState.type === 'feature'
-                ? 'Artikel ini akan ditonjolkan di feed edukasi.'
-                : dialogState.type === 'unfeature'
-                  ? 'Artikel ini tidak lagi muncul sebagai konten unggulan.'
-                  : 'Konfirmasi aksi artikel.'
+              : 'Konfirmasi aksi artikel.'
         }
         confirmLabel={
           dialogState.type === 'reject'
             ? 'Kirim Penolakan'
             : dialogState.type === 'delete'
               ? 'Buang Permanen'
-              : dialogState.type === 'feature'
-                ? 'Jadikan Featured'
-                : dialogState.type === 'unfeature'
-                  ? 'Lepas Featured'
-                  : 'Lanjutkan'
+              : 'Lanjutkan'
         }
         confirmTone={
           dialogState.type === 'reject' ||
@@ -1101,25 +1041,6 @@ export function ModerationPage() {
             deleteMutation.mutate(item);
             return;
           }
-
-          if (dialogState.type === 'feature') {
-            featureMutation.mutate({
-              articleId: item.articleId,
-              featured: true,
-              featuredOrder: Number(featuredOrderInput || 1)
-            });
-            return;
-          }
-
-          if (dialogState.type === 'unfeature') {
-            featureMutation.mutate({
-              articleId: item.articleId,
-              featured: false,
-              featuredOrder: null
-            });
-            return;
-          }
-
         }}
       >
         {dialogState.type === 'reject' ? (
@@ -1132,20 +1053,6 @@ export function ModerationPage() {
               value={rejectionReason}
               onChange={(event) => setRejectionReason(event.target.value)}
               placeholder="Tulis alasan penolakan yang membantu kontributor memperbaiki artikel."
-              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-pulse/30 focus:bg-white focus:ring-4 focus:ring-pulse/10"
-            />
-          </div>
-        ) : dialogState.type === 'feature' ? (
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wide text-slate-400">
-              Urutan featured
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="9999"
-              value={featuredOrderInput}
-              onChange={(event) => setFeaturedOrderInput(event.target.value)}
               className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition-colors focus:border-pulse/30 focus:bg-white focus:ring-4 focus:ring-pulse/10"
             />
           </div>

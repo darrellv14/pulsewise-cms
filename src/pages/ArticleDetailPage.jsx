@@ -4,7 +4,6 @@ import {
   Heart,
   MessageCircle,
   ShieldCheck,
-  Star,
   User
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
@@ -356,11 +355,6 @@ export function ArticleDetailPage() {
               <span className="text-pulse bg-pulse/10 font-bold text-xs uppercase tracking-wider px-3 py-1.5 rounded-full">
                 {article.category?.name || 'Umum'}
               </span>
-              {article.isFeatured && (
-                <span className="text-amber-600 bg-amber-50 font-bold text-xs uppercase tracking-wider px-3 py-1.5 rounded-full flex items-center gap-1">
-                  <Star size={14} className="fill-amber-500" /> Featured Article
-                </span>
-              )}
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight">

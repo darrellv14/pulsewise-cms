@@ -1,4 +1,4 @@
-import { Heart, MessageCircle, Star } from 'lucide-react';
+import { Heart, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 function resolveAvatar(author) {
@@ -32,13 +32,6 @@ export function ArticleCard({ article }) {
             PulseWise Education
           </div>
         )}
-
-        {article.isFeatured && (
-          <div className="absolute top-4 left-4 inline-flex items-center gap-1 rounded-full bg-white/95 text-amber-500 px-3 py-1 text-xs font-bold shadow-sm">
-            <Star size={12} className="fill-amber-400" /> Featured
-          </div>
-        )}
-
         <div className="absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-black/45 to-transparent pointer-events-none"></div>
       </div>
 

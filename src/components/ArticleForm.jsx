@@ -113,11 +113,11 @@ function validateArticleForm(
 
 function getAutosaveMessage(status, lastSavedAt) {
   if (status === 'saving') {
-    return 'Menyimpan draft otomatis...';
+    return 'Saving Draft...';
   }
 
   if (status === 'error') {
-    return 'Autosave gagal. Perubahan akan dicoba lagi.';
+    return 'Autosave failed. Retrying...';
   }
 
   if (status === 'saved' && lastSavedAt) {
@@ -127,7 +127,7 @@ function getAutosaveMessage(status, lastSavedAt) {
     })}`;
   }
 
-  return 'Siap menyimpan otomatis';
+  return 'Saving';
 }
 
 function UploadProgress({ label, progress, tone = 'pulse' }) {

@@ -167,21 +167,6 @@ export async function rejectRevision(revisionId, rejectionReason) {
   return response.data.data;
 }
 
-export async function featureArticle(
-  articleId,
-  featured,
-  featuredOrder = null
-) {
-  const response = await apiClient.post(
-    `/admin/education/articles/${articleId}/feature`,
-    {
-      featured,
-      featuredOrder
-    }
-  );
-  return response.data.data;
-}
-
 export async function deleteArticle(articleId) {
   const response = await apiClient.delete(`/admin/education/articles/${articleId}`);
   return response.data.data;
