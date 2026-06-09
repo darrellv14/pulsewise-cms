@@ -2,7 +2,7 @@ export const APP_NAME = 'PulseWise CMS';
 export const PULSEWISE_LOGO_ICON_URL =
   'https://res.cloudinary.com/drvu0dpry/image/upload/v1780725560/pulsewise/education/covers/wqslzxc11wntnerjjy95.png';
 export const PULSEWISE_LOGO_FULL_URL =
-  'https://res.cloudinary.com/drvu0dpry/image/upload/v1780976936/Group_10_lnzibm.png';
+  'https://res.cloudinary.com/drvu0dpry/image/upload/v1780978530/Pulse_Wise_wcteod.png';
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 export const CLOUDINARY_CLOUD_NAME =
   import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || '';
