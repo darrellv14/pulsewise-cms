@@ -5,8 +5,7 @@ import {
   ShieldCheck,
   Search,
   Menu,
-  X,
-  HeartPulse
+  X
 } from 'lucide-react';
 import {
   NavLink,
@@ -17,6 +16,10 @@ import {
 } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext.jsx';
 import { useEffect, useState } from 'react';
+import {
+  PULSEWISE_LOGO_FULL_URL,
+  PULSEWISE_LOGO_ICON_URL
+} from '../config.js';
 
 const navItems = [
   { to: '/articles', label: 'Edukasi', icon: BookOpen },

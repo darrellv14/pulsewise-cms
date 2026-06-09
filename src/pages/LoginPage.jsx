@@ -191,11 +191,13 @@ export function LoginPage() {
       <div className="flex w-full max-w-200 flex-col overflow-hidden rounded-3xl border border-slate-100 bg-white shadow-xl md:flex-row">
         <div className="relative flex flex-col justify-between overflow-hidden bg-linear-to-br from-pulse to-pulse-dark p-10 text-white md:w-5/12">
           <div className="relative z-10 mb-12 flex items-center gap-3">
-            <img
-              src={PULSEWISE_LOGO_FULL_URL}
-              alt="PulseWise"
-              className="h-12 w-auto max-w-52 object-contain"
-            />
+            <div className="inline-flex rounded-2xl bg-white/95 px-4 py-3 shadow-lg shadow-black/10 ring-1 ring-white/70 backdrop-blur-sm">
+              <img
+                src={PULSEWISE_LOGO_FULL_URL}
+                alt="PulseWise"
+                className="h-12 w-auto max-w-52 object-contain"
+              />
+            </div>
           </div>
 
           <div className="relative z-10">
