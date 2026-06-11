@@ -295,7 +295,7 @@ export function ArticleDetailPage() {
 
   if (articleQuery.isError) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <ErrorState
           title="Detail artikel belum tersedia"
           message={getErrorMessage(
@@ -311,7 +311,7 @@ export function ArticleDetailPage() {
 
   if (!article) {
     return (
-      <div className="p-8">
+      <div className="p-4 sm:p-8">
         <EmptyState
           title="Artikel tidak ditemukan"
           message="Slug ini belum punya artikel published."
@@ -327,8 +327,8 @@ export function ArticleDetailPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto pb-24 px-4 sm:px-6">
-      <div className="mt-8 mb-4">
+    <div className="mx-auto max-w-3xl px-0 pb-16 sm:px-6 sm:pb-24">
+      <div className="mb-4 mt-4 px-4 sm:mt-8 sm:px-0">
         <Link
           to="/articles"
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-pulse/30 hover:text-pulse"
@@ -338,9 +338,9 @@ export function ArticleDetailPage() {
         </Link>
       </div>
 
-      <article className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden mb-8">
+      <article className="mb-6 overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-sm sm:mb-8 sm:rounded-2xl">
         {article.coverImageUrl && (
-          <div className="w-full aspect-21/9 sm:h-96 relative">
+          <div className="relative aspect-[16/10] w-full sm:h-96">
             <img
               src={article.coverImageUrl}
               alt={article.title}
@@ -349,7 +349,7 @@ export function ArticleDetailPage() {
           </div>
         )}
 
-        <div className="p-6 sm:p-10 space-y-8">
+        <div className="space-y-6 p-4 sm:space-y-8 sm:p-10">
           <header className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
               <span className="text-pulse bg-pulse/10 font-bold text-xs uppercase tracking-wider px-3 py-1.5 rounded-full">
@@ -357,12 +357,12 @@ export function ArticleDetailPage() {
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-tight">
+            <h1 className="text-2xl font-extrabold leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
               {article.title}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm text-slate-500 border-b border-slate-100 pb-6 pt-2">
-              <div className="flex items-center gap-3 font-medium text-slate-700">
+            <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 pt-2 text-sm text-slate-500 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6 sm:pb-6">
+              <div className="flex min-w-0 items-center gap-3 font-medium text-slate-700">
                 <div className="w-10 h-10 rounded-full overflow-hidden bg-pulse/10 text-pulse flex items-center justify-center">
                   {authorMeta.avatarUrl ? (
                     <img
@@ -400,11 +400,11 @@ export function ArticleDetailPage() {
             </div>
           </header>
 
-          <main className="min-h-50">
+          <main className="min-h-50 overflow-hidden">
             <MdxContent source={article.contentMarkdown} />
           </main>
 
-          <footer className="space-y-6 pt-6 border-t border-slate-100">
+          <footer className="space-y-5 border-t border-slate-100 pt-6">
             {article.tags?.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 <span className="text-sm font-semibold text-slate-500 py-1 mr-2">
@@ -421,8 +421,8 @@ export function ArticleDetailPage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
-              <div className="flex gap-6">
+            <div className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap gap-4 sm:gap-6">
                 <button
                   onClick={() => {
                     setBusyAction('like');
@@ -435,17 +435,17 @@ export function ArticleDetailPage() {
                     );
                   }}
                   disabled={busyAction === 'like'}
-                  className={`flex items-center gap-2 font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-pulse/50 rounded flex-1 ${article.likedByMe ? 'text-pulse' : 'text-slate-500 hover:text-slate-700'}`}
+                  className={`flex flex-1 items-center gap-2 rounded-xl text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-pulse/50 ${article.likedByMe ? 'text-pulse' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                   <Heart
                     size={24}
                     className={`transition-all ${article.likedByMe ? 'fill-pulse' : 'scale-100'}`}
                   />
-                  <span className="text-base">{article.likeCount} Suka</span>
+                  <span className="text-sm sm:text-base">{article.likeCount} Suka</span>
                 </button>
-                <div className="flex items-center gap-2 font-medium text-slate-500 px-4">
+                <div className="flex items-center gap-2 rounded-xl px-0 text-sm font-medium text-slate-500 sm:px-4">
                   <MessageCircle size={24} />
-                  <span className="text-base">
+                  <span className="text-sm sm:text-base">
                     {article.commentCount} Komentar
                   </span>
                 </div>
@@ -456,11 +456,11 @@ export function ArticleDetailPage() {
       </article>
 
       <section
-        className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 sm:p-10 space-y-8"
+        className="space-y-6 rounded-[28px] border border-slate-100 bg-white p-4 shadow-sm sm:space-y-8 sm:rounded-2xl sm:p-10"
         id="comments"
       >
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-2">
+          <h2 className="mb-2 text-xl font-bold text-slate-900 sm:text-2xl">
             {article.commentCount} Komentar
           </h2>
           <p className="text-slate-500 text-sm">
@@ -468,8 +468,8 @@ export function ArticleDetailPage() {
           </p>
         </div>
 
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-          <div className="flex gap-4">
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex flex-col gap-4 sm:flex-row">
             <div className="w-10 h-10 rounded-full overflow-hidden bg-pulse text-white flex items-center justify-center font-bold text-sm shrink-0">
               {currentAuthor.avatarPhoto ? (
                 <img
@@ -489,10 +489,10 @@ export function ArticleDetailPage() {
                 placeholder="Tulis komentar Anda..."
                 className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-pulse/20 focus:border-pulse resize-none shadow-sm"
               />
-              <div className="flex justify-end">
+              <div className="flex justify-end sm:justify-end">
                 <button
                   type="button"
-                  className="bg-pulse hover:bg-pulse-dark text-white font-medium px-6 py-2.5 rounded-xl text-sm transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full rounded-xl bg-pulse px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-pulse-dark disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto"
                   onClick={() => {
                     if (!commentDraft.trim()) {
                       toast.error('Komentar tidak boleh kosong.');
@@ -547,3 +547,4 @@ export function ArticleDetailPage() {
     </div>
   );
 }
+

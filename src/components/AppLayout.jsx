@@ -48,6 +48,10 @@ export function AppLayout() {
   }, [location.pathname, searchParams]);
 
   useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
     const timeout = setTimeout(() => {
       if (location.pathname !== '/articles') {
         return;
@@ -92,25 +96,27 @@ export function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
-      <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-50">
+    <div className="flex min-h-screen flex-col bg-slate-50 md:flex-row">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-slate-200 bg-white px-4 pb-4 pt-[calc(env(safe-area-inset-top)+0.875rem)] md:hidden">
         <img
           src={PULSEWISE_LOGO_FULL_URL}
           alt="PulseWise"
           className="h-8 w-auto max-w-36 object-contain"
         />
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="text-slate-600"
+          type="button"
+          onClick={() => setMobileMenuOpen((current) => !current)}
+          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 shadow-sm transition-colors hover:bg-slate-50"
+          aria-label={mobileMenuOpen ? 'Tutup menu' : 'Buka menu'}
         >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </header>
 
       <aside
-        className={`fixed inset-y-0 left-0 z-40 bg-white w-64 border-r border-slate-200 transform transition-transform duration-200 ease-in-out md:translate-x-0 md:static md:flex md:flex-col ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={`fixed left-0 z-40 flex w-[min(85vw,20rem)] max-w-sm flex-col border-r border-slate-200 bg-white shadow-xl transition-transform duration-200 ease-in-out md:static md:w-64 md:max-w-none md:translate-x-0 md:shadow-none ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} top-[calc(env(safe-area-inset-top)+4.75rem)] bottom-0 rounded-tr-3xl md:top-0 md:bottom-auto md:rounded-none`}
       >
-        <div className="hidden md:flex items-center gap-3 border-b border-slate-100 px-5 py-5">
+        <div className="hidden items-center gap-3 border-b border-slate-100 px-5 py-5 md:flex">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-pulse/8 p-2">
             <img
               src={PULSEWISE_LOGO_ICON_URL}
@@ -124,14 +130,14 @@ export function AppLayout() {
               alt="PulseWise"
               className="h-6 w-auto max-w-33 object-contain object-left"
             />
-            <p className="text-xs text-slate-400 font-medium tracking-wide">
+            <p className="text-xs font-medium tracking-wide text-slate-400">
               Workspace
             </p>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto py-6 px-4">
-          <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+        <div className="flex-1 overflow-y-auto px-4 py-5 md:py-6">
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
             Menu Utama
           </p>
           <nav className="space-y-1">
@@ -141,7 +147,7 @@ export function AppLayout() {
                 to={to}
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors font-medium ${isActive ? 'bg-pulse text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`
+                  `flex items-center gap-3 rounded-xl px-3 py-2.5 font-medium transition-colors ${isActive ? 'bg-pulse text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`
                 }
               >
                 <Icon size={18} />
@@ -149,10 +155,10 @@ export function AppLayout() {
               </NavLink>
             ))}
 
-            {user?.role === 'admin' && (
+            {user?.role === 'admin' ? (
               <>
-                <div className="pt-6 pb-2">
-                  <p className="px-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <div className="pb-2 pt-6">
+                  <p className="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
                     Admin
                   </p>
                 </div>
@@ -160,20 +166,20 @@ export function AppLayout() {
                   to="/moderation"
                   onClick={() => setMobileMenuOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors font-medium ${isActive ? 'bg-pulse text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`
+                    `flex items-center gap-3 rounded-xl px-3 py-2.5 font-medium transition-colors ${isActive ? 'bg-pulse text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`
                   }
                 >
                   <ShieldCheck size={18} />
                   <span>Moderasi Artikel</span>
                 </NavLink>
               </>
-            )}
+            ) : null}
           </nav>
         </div>
 
-        <div className="p-4 border-t border-slate-200">
-          <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-50 mb-3">
-            <div className="w-8 h-8 rounded-full overflow-hidden bg-pulse flex items-center justify-center text-white font-bold text-sm shrink-0">
+        <div className="border-t border-slate-200 p-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] md:pb-4">
+          <div className="mb-3 flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-pulse text-sm font-bold text-white">
               {userAvatar ? (
                 <img
                   src={userAvatar}
@@ -184,11 +190,11 @@ export function AppLayout() {
                 (user?.username || user?.firstName || 'P')[0].toUpperCase()
               )}
             </div>
-            <div className="overflow-hidden flex-1">
-              <p className="text-sm font-semibold text-slate-800 truncate">
+            <div className="min-w-0 flex-1 overflow-hidden">
+              <p className="truncate text-sm font-semibold text-slate-800">
                 {user?.username || user?.email}
               </p>
-              <p className="text-xs text-slate-500 capitalize">
+              <p className="text-xs capitalize text-slate-500">
                 {user?.role?.replace('_', ' ') || 'User'}
               </p>
             </div>
@@ -196,7 +202,7 @@ export function AppLayout() {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors font-medium text-sm"
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-red-50 hover:text-red-600"
           >
             <LogOut size={16} />
             <span>Keluar</span>
@@ -204,8 +210,8 @@ export function AppLayout() {
         </div>
       </aside>
 
-      <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <header className="hidden md:flex bg-white h-16 border-b border-slate-200 px-8 items-center justify-between shrink-0">
+      <main className="flex min-h-0 flex-1 flex-col md:h-screen">
+        <header className="hidden h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-8 md:flex">
           <div className="relative w-96">
             <Search
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -216,22 +222,22 @@ export function AppLayout() {
               value={searchValue}
               onChange={handleSearchChange}
               placeholder="Cari artikel edukasi..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-full pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pulse/20 focus:border-pulse transition-shadow"
+              className="w-full rounded-full border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm transition-shadow focus:border-pulse focus:outline-none focus:ring-2 focus:ring-pulse/20"
             />
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto w-full p-4 md:p-8">
+        <div className="w-full flex-1 overflow-y-auto p-3 sm:p-4 md:p-8">
           <Outlet />
         </div>
       </main>
 
-      {mobileMenuOpen && (
+      {mobileMenuOpen ? (
         <div
-          className="fixed inset-0 bg-slate-900/50 z-30 md:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/50 md:hidden"
           onClick={() => setMobileMenuOpen(false)}
         />
-      )}
+      ) : null}
     </div>
   );
 }

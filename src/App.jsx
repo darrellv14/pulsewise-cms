@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage.jsx';
 import { ModerationPage } from './pages/ModerationPage.jsx';
 import { MyArticlesPage } from './pages/MyArticlesPage.jsx';
 import { NotFoundPage } from './pages/NotFoundPage.jsx';
+import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage.jsx';
 
 const EditorPage = lazy(() =>
   import('./pages/EditorPage.jsx').then((module) => ({
@@ -46,6 +47,7 @@ export default function App() {
       <Suspense fallback={<EditorSkeleton />}>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route
             path="/"
             element={
@@ -79,3 +81,4 @@ export default function App() {
     </AuthProvider>
   );
 }
+

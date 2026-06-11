@@ -270,26 +270,27 @@ export function ArticleForm({
       }),
       toolbarPlugin({
         toolbarContents: () => (
-          <div className="flex flex-wrap items-center gap-1 p-1">
-            <UndoRedo />
-            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
-            <BoldItalicUnderlineToggles />
-            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
-            <BlockTypeSelect />
-            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
-            <ListsToggle />
-            <div className="hidden sm:block w-px h-6 bg-slate-200 mx-1" />
-            <CreateLink />
-            <InsertImage />
-            <div className="hidden sm:flex flex-1" />
-            <DiffSourceToggleWrapper />
+          <div className="flex w-full overflow-x-auto pb-1">
+            <div className="flex min-w-max items-center gap-1 p-1">
+              <UndoRedo />
+              <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
+              <BoldItalicUnderlineToggles />
+              <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
+              <BlockTypeSelect />
+              <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
+              <ListsToggle />
+              <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
+              <CreateLink />
+              <InsertImage />
+              <div className="hidden flex-1 sm:flex" />
+              <DiffSourceToggleWrapper />
+            </div>
           </div>
         )
       })
     ],
     []
   );
-
   async function handleCoverUpload(file) {
     setCoverUploading(true);
     setCoverUploadProgress(0);
@@ -401,15 +402,15 @@ export function ArticleForm({
   };
 
   return (
-    <div className="flex flex-col relative">
-      <div className="sticky top-0 sm:top-16 z-20 border-b border-slate-100 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/85">
+    <div className="relative flex min-w-0 flex-col">
+      <div className="sticky top-0 z-20 border-b border-slate-100 bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/85">
         <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
           <div className="flex items-start gap-3 sm:items-center min-w-0">
             <div
               className={`mt-1 sm:mt-0 w-2.5 h-2.5 shrink-0 rounded-full ${autosaveStatus === 'error' ? 'bg-red-400' : autosaveStatus === 'saving' ? 'bg-amber-400' : 'bg-emerald-400'}`}
               title="Autosave"
             ></div>
-            <span className="text-xs sm:text-sm font-medium text-slate-500 leading-5 sm:leading-normal wrap-break-word">
+            <span className="break-words text-xs font-medium leading-5 text-slate-500 sm:text-sm sm:leading-normal">
               {getAutosaveMessage(autosaveStatus, lastSavedAt)}
             </span>
           </div>
@@ -456,7 +457,7 @@ export function ArticleForm({
         </div>
       </div>
 
-      <div className="w-full max-w-3xl mx-auto space-y-6 px-4 py-5 sm:px-6 sm:py-6 md:px-8 md:py-10">
+      <div className="mx-auto w-full max-w-3xl space-y-5 px-0 py-4 sm:space-y-6 sm:px-2 sm:py-6 md:px-8 md:py-10">
         {Object.keys(errors).length ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 sm:px-5 text-sm text-amber-800">
             <p className="font-semibold">
@@ -536,7 +537,7 @@ export function ArticleForm({
             value={form.title}
             onChange={(event) => updateField('title', event.target.value)}
             placeholder="Judul Artikel..."
-            className={`w-full rounded-2xl sm:rounded-3xl border bg-white px-4 py-4 sm:px-5 sm:py-5 text-2xl sm:text-3xl md:text-4xl font-bold text-slate-800 placeholder:text-slate-300 focus:outline-none ${errors.title ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200 focus:border-pulse focus:ring-4 focus:ring-pulse/10'}`}
+            className={`w-full rounded-2xl border bg-white px-4 py-4 text-xl font-bold text-slate-800 placeholder:text-slate-300 focus:outline-none sm:rounded-3xl sm:px-5 sm:py-5 sm:text-3xl md:text-4xl ${errors.title ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200 focus:border-pulse focus:ring-4 focus:ring-pulse/10'}`}
           />
           {errors.title ? (
             <p className="mt-2 text-sm font-medium text-red-600">
@@ -652,7 +653,7 @@ export function ArticleForm({
         </div>
 
         <div className="border-t border-slate-100 pt-6 sm:pt-8">
-          <div className="mb-3 flex items-center justify-between gap-4">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-slate-400">
                 Isi Artikel *
@@ -672,7 +673,7 @@ export function ArticleForm({
             </div>
           ) : null}
           <div
-            className={`rounded-2xl sm:rounded-[28px] border bg-white p-2 sm:p-3 overflow-hidden ${errors.contentMarkdown ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200'}`}
+            className={`overflow-hidden rounded-2xl border bg-white p-1.5 sm:rounded-[28px] sm:p-3 ${errors.contentMarkdown ? 'border-red-300 ring-4 ring-red-100' : 'border-slate-200'}`}
           >
             <MDXEditor
               key={initialValue?.articleId || 'new-article'}
@@ -688,7 +689,7 @@ export function ArticleForm({
                 });
               }}
               plugins={mdxPlugins}
-              contentEditableClassName="min-h-[320px] sm:min-h-[400px] outline-none px-1 sm:px-2"
+              contentEditableClassName="min-h-[260px] px-1 text-[15px] leading-7 outline-none sm:min-h-[360px] sm:px-2 md:min-h-[420px]"
               className="mdx-editor-custom"
             />
           </div>
@@ -714,3 +715,6 @@ export function ArticleForm({
     </div>
   );
 }
+
+
+

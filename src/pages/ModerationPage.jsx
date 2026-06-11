@@ -101,7 +101,7 @@ function DiffField({ label, before, after, changed, type = 'text' }) {
         return <span className="text-slate-400 text-sm">Tidak ada tag</span>;
       }
       return (
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap">
           {tags.map((tag) => (
             <span
               key={tag}
@@ -140,7 +140,7 @@ function DiffField({ label, before, after, changed, type = 'text' }) {
     <div
       className={`rounded-2xl border p-4 ${changed ? 'border-pulse/30 bg-pulse/5' : 'border-slate-200 bg-white'}`}
     >
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h4 className="text-sm font-bold text-slate-900">{label}</h4>
         <span
           className={`rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${changed ? 'bg-pulse text-white' : 'bg-slate-100 text-slate-500'}`}
@@ -172,7 +172,7 @@ function DiffField({ label, before, after, changed, type = 'text' }) {
 function SubmissionPreview({ detail }) {
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+      <section className="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <span className="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-emerald-700">
@@ -185,7 +185,7 @@ function SubmissionPreview({ detail }) {
               {detail.excerpt || 'Belum ada ringkasan.'}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          <div className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 sm:w-auto">
             <p>
               <span className="font-semibold text-slate-900">Kategori:</span>{' '}
               {detail.category?.name || 'Belum dipilih'}
@@ -215,7 +215,7 @@ function SubmissionPreview({ detail }) {
       ) : null}
 
       {detail.tags?.length ? (
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap">
           {detail.tags.map((tag) => (
             <span
               key={tag.slug}
@@ -298,7 +298,7 @@ function RevisionDiffPreview({ currentArticle, revision }) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+      <section className="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <span className="inline-flex rounded-full bg-indigo-100 px-3 py-1 text-xs font-bold uppercase tracking-wide text-indigo-700">
@@ -312,7 +312,7 @@ function RevisionDiffPreview({ currentArticle, revision }) {
               diajukan penulis.
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600">
+          <div className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 sm:w-auto">
             <p>
               <span className="font-semibold text-slate-900">Penulis:</span>{' '}
               {currentArticle?.author?.displayName || 'Kontributor'}
@@ -353,14 +353,14 @@ function ModerationPreviewModal({ item, detail, isLoading, onClose }) {
   const isRevision = item._type === 'Revisi';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/55 p-4 backdrop-blur-sm">
-      <div className="relative flex max-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-[0_32px_90px_rgba(15,23,42,0.18)]">
-        <div className="flex items-center justify-between gap-4 border-b border-slate-200 px-6 py-5">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-slate-950/55 px-3 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-sm sm:p-4">
+      <div className="relative flex max-h-[calc(100vh-1.5rem-env(safe-area-inset-top))] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_32px_90px_rgba(15,23,42,0.18)] sm:max-h-[calc(100vh-2rem)] sm:rounded-[32px]">
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-4 py-4 sm:items-center sm:px-6 sm:py-5">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.24em] text-pulse">
               Moderation Review
             </p>
-            <h2 className="mt-1 text-2xl font-extrabold text-slate-900">
+            <h2 className="mt-1 text-xl font-extrabold text-slate-900 sm:text-2xl">
               {isRevision
                 ? 'Lihat perubahan revisi'
                 : item._type === 'Artikel Baru'
@@ -377,7 +377,7 @@ function ModerationPreviewModal({ item, detail, isLoading, onClose }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-6">
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-6">
           {isLoading ? (
             <InlineLoader label="Menyiapkan preview moderasi..." />
           ) : detail ? (
@@ -619,8 +619,8 @@ export function ModerationPage() {
 
   return (
     <>
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="mx-auto max-w-6xl space-y-6">
+        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <div className="flex items-center gap-2 mb-1">
               <h1 className="text-2xl font-bold text-slate-900">
@@ -634,13 +634,13 @@ export function ModerationPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap">
           {MODERATION_TABS.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors ${
+              className={`shrink-0 rounded-2xl px-4 py-2.5 text-sm font-semibold transition-colors ${
                 activeTab === tab.id
                   ? 'bg-pulse text-white shadow-sm'
                   : 'bg-white text-slate-500 border border-slate-200 hover:border-pulse/30 hover:text-pulse'
@@ -671,8 +671,9 @@ export function ModerationPage() {
               }}
             />
           ) : queue.length ? (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="min-w-[860px] w-full border-collapse text-left">
                 <thead>
                   <tr className="bg-slate-50/50 border-b border-slate-100">
                     <th className="py-4 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -758,7 +759,8 @@ export function ModerationPage() {
                     </tr>
                   ))}
                 </tbody>
-              </table>
+                </table>
+              </div>
             </div>
           ) : (
             <div className="bg-white rounded-2xl p-12 shadow-sm border border-slate-100 flex flex-col items-center text-center">
@@ -823,8 +825,9 @@ export function ModerationPage() {
               />
             ) : (
               <>
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                  <table className="w-full text-left border-collapse">
+                <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="min-w-[860px] w-full border-collapse text-left">
                     <thead>
                       <tr className="bg-slate-50/50 border-b border-slate-100">
                         <th className="py-4 px-6 text-xs font-semibold uppercase tracking-wider text-slate-500">
@@ -927,7 +930,8 @@ export function ModerationPage() {
                         </tr>
                       )}
                     </tbody>
-                  </table>
+                    </table>
+                  </div>
                 </div>
                 {adminPagination ? (
                   <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
@@ -1069,3 +1073,5 @@ export function ModerationPage() {
     </>
   );
 }
+
+

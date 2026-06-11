@@ -1,6 +1,6 @@
 import { Loader2, Lock, Mail } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '../auth/AuthContext.jsx';
 import {
@@ -319,6 +319,17 @@ export function LoginPage() {
                 </div>
               ) : null}
             </div>
+
+            <div className="mt-5 text-center text-xs leading-6 text-slate-400">
+              Dengan menggunakan PulseWise CMS, Anda menyetujui
+              <Link
+                to="/privacy-policy"
+                className="ml-1 font-semibold text-rose-600 transition-colors hover:text-rose-700"
+              >
+                Kebijakan Privasi
+              </Link>
+              .
+            </div>
           </div>
         </div>
       </div>
@@ -348,3 +359,4 @@ function GoogleMark() {
     </svg>
   );
 }
+
