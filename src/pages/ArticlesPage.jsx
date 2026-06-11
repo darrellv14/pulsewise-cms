@@ -1,4 +1,4 @@
-﻿import { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -84,7 +84,7 @@ export function ArticlesPage() {
         <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-rose-50 blur-3xl" />
 
         <div className="relative z-10 flex max-w-2xl flex-col items-start gap-6">
-          <div className="mb-2">
+          <div className="mb-2 pl-1 pt-1">
             <img
               src={PULSEWISE_LOGO_FULL_URL}
               alt="PulseWise"
@@ -211,3 +211,4 @@ export function ArticlesPage() {
     </div>
   );
 }
+
