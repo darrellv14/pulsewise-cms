@@ -28,7 +28,6 @@ export function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
   const [submitting, setSubmitting] = useState(false);
   const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -188,38 +187,38 @@ export function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-4">
-      <div className="flex w-full max-w-260 flex-col overflow-hidden rounded-4xl border border-slate-200/60 bg-white shadow-2xl md:flex-row">
-        <div className="relative flex w-full flex-col justify-between overflow-hidden border-r border-slate-100 bg-slate-50 p-10 md:w-5/12">
+      <div className="flex w-full max-w-4xl flex-col overflow-hidden rounded-3xl border border-slate-200/60 bg-white shadow-xl md:flex-row">
+        <div className="relative flex w-full flex-col justify-between overflow-hidden border-r border-slate-100 bg-slate-50 p-8 md:w-5/12">
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[24px_24px]" />
 
           <div className="relative z-10">
             <img
               src={PULSEWISE_LOGO_FULL_URL}
               alt="PulseWise"
-              className="h-10 w-auto object-contain"
+              className="h-8 w-auto object-contain"
             />
           </div>
 
-          <div className="relative z-10 mb-4 mt-20">
-            <h2 className="mb-4 text-3xl font-bold tracking-tight text-slate-900">
+          <div className="relative z-10 mb-2 mt-12 md:mt-16">
+            <h2 className="mb-3 text-2xl font-bold tracking-tight text-slate-900">
               Editorial workspace untuk edukasi.
             </h2>
-            <p className="text-base leading-relaxed text-slate-600">
+            <p className="text-sm leading-relaxed text-slate-600">
               Tulis artikel, ajukan review, moderasi konten, dan kelola cover
               image dalam satu panel kerja terpadu.
             </p>
           </div>
         </div>
 
-        <div className="flex w-full flex-col justify-center p-8 md:w-7/12 md:p-12 lg:p-16">
-          <div className="mx-auto w-full max-w-md">
-            <div className="mb-8">
+        <div className="flex w-full flex-col justify-center p-6 md:w-7/12 md:p-10">
+          <div className="mx-auto w-full max-w-[360px]">
+            <div className="mb-6">
               <img
                 src={PULSEWISE_LOGO_ICON_URL}
                 alt="PulseWise icon"
-                className="mb-6 h-14 w-14 rounded-2xl bg-white object-contain p-2 shadow-sm ring-1 ring-slate-200"
+                className="mb-4 h-12 w-12 rounded-[14px] bg-white object-contain p-2 shadow-sm ring-1 ring-slate-200"
               />
-              <h3 className="text-2xl font-bold text-slate-900">
+              <h3 className="text-xl font-bold text-slate-900">
                 Masuk ke CMS
               </h3>
               <p className="mt-1 text-sm text-slate-500">
@@ -227,16 +226,16 @@ export function LoginPage() {
               </p>
             </div>
 
-            <form className="space-y-5" onSubmit={handleNormalLogin}>
-              <div className="space-y-2">
+            <form className="space-y-4" onSubmit={handleNormalLogin}>
+              <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">
                   Email Address
                 </label>
 
                 <div className="relative">
                   <Mail
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    size={18}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={16}
                   />
 
                   <input
@@ -245,20 +244,20 @@ export function LoginPage() {
                     type="email"
                     required
                     placeholder="nama@email.com"
-                    className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
+                    className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-sm font-medium text-slate-700">
                   Password
                 </label>
 
                 <div className="relative">
                   <Lock
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                    size={18}
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                    size={16}
                   />
 
                   <input
@@ -266,26 +265,26 @@ export function LoginPage() {
                     onChange={(event) => setPassword(event.target.value)}
                     type="password"
                     required
-                    placeholder="••••••••"
-                    className="w-full rounded-xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10"
+                    placeholder="********"
+                    className="w-full rounded-lg border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/10"
                   />
                 </div>
               </div>
 
-              {error && (
-                <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
+              {error ? (
+                <div className="rounded-lg border border-red-100 bg-red-50 p-2.5 text-xs font-medium text-red-600">
                   {error}
                 </div>
-              )}
+              ) : null}
 
               <button
                 type="submit"
                 disabled={submitting || googleSubmitting || !email || !password}
-                className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-rose-600 py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-rose-700 hover:shadow-md focus:outline-none focus:ring-4 focus:ring-rose-600/30 disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-rose-600 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-rose-700 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-rose-600/30 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {submitting ? (
                   <>
-                    <Loader2 size={18} className="animate-spin" />
+                    <Loader2 size={16} className="animate-spin" />
                     Memproses...
                   </>
                 ) : (
@@ -294,9 +293,11 @@ export function LoginPage() {
               </button>
             </form>
 
-            <div className="my-6 flex items-center gap-4">
+            <div className="my-5 flex items-center gap-4">
               <span className="h-px flex-1 bg-slate-200" />
-              <span>atau</span>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                atau
+              </span>
               <span className="h-px flex-1 bg-slate-200" />
             </div>
 
@@ -305,18 +306,18 @@ export function LoginPage() {
                 type="button"
                 disabled={submitting || googleSubmitting}
                 onClick={beginGoogleRedirectLogin}
-                className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-5 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 <GoogleMark />
                 Masuk Dengan Google
               </button>
 
-              {googleSubmitting && (
-                <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-white/90 text-sm font-bold text-slate-500 backdrop-blur-sm">
-                  <Loader2 size={18} className="animate-spin" />
+              {googleSubmitting ? (
+                <div className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-white/90 text-sm font-bold text-slate-500 backdrop-blur-sm">
+                  <Loader2 size={16} className="animate-spin" />
                   Memverifikasi...
                 </div>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
@@ -327,7 +328,7 @@ export function LoginPage() {
 
 function GoogleMark() {
   return (
-    <svg aria-hidden="true" className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
+    <svg aria-hidden="true" className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
       <path
         fill="#4285F4"
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
