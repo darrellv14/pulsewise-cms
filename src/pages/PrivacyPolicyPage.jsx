@@ -1,4 +1,4 @@
-import { Globe2, Mail, ExternalLink, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Mail, ShieldCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { PULSEWISE_LOGO_FULL_URL } from '../config.js';
@@ -12,133 +12,133 @@ const DELETE_FORM_URL =
 
 const POLICY_ID = [
   {
-    title: 'Informasi yang Kami Kumpulkan',
+    title: '1. Informasi yang Kami Kumpulkan',
     paragraphs: [
-      'Kami dapat mengumpulkan informasi akun dan identitas seperti nama, alamat email, kata sandi, data verifikasi OTP, identifier akun internal, status akun, serta catatan autentikasi terkait.',
+      'Kami dapat mengumpulkan informasi akun dan identitas seperti nama, alamat email, kata sandi, data verifikasi OTP, pengidentifikasi akun internal, status akun, serta catatan autentikasi terkait.',
       'Jika Anda masuk dengan Google, kami dapat menerima detail akun Google tertentu yang diperlukan untuk menyelesaikan proses masuk, seperti nama, alamat email, foto profil, dan token autentikasi.',
-      'Kami juga dapat memproses informasi profil yang Anda pilih untuk tambahkan, seperti tanggal lahir, jenis kelamin, alamat, tinggi badan, golongan darah, detail kebiasaan tertentu, avatar profil, dan preferensi terkait.'
+      'Kami juga dapat memproses informasi profil yang Anda pilih untuk ditambahkan, seperti tanggal lahir, jenis kelamin, alamat, tinggi badan, golongan darah, detail kebiasaan tertentu, avatar profil, dan preferensi terkait.'
     ],
     bullets: [
-      'Catatan harian dan entri wellness seperti tidur, aktivitas, asupan, detail nutrisi, body metrics, rutinitas, status penyelesaian, dan catatan pribadi.',
-      'Nilai body metrics yang Anda isi, termasuk tinggi badan, berat badan, BMI, detak jantung, tekanan darah, saturasi oksigen, dan nilai wellness sejenis.',
+      'Catatan harian dan entri wellness (kesehatan) seperti tidur, aktivitas, asupan makanan, detail nutrisi, metrik tubuh, rutinitas, status penyelesaian, dan catatan pribadi.',
+      'Nilai metrik tubuh yang Anda isi, termasuk tinggi badan, berat badan, BMI, detak jantung, tekanan darah, saturasi oksigen, dan nilai pelacakan sejenis.',
       'Informasi kontak dukungan yang Anda simpan, seperti nama kontak, nomor telepon, dan status prioritas.',
-      'Interaksi edukasi di dalam aplikasi, termasuk likes, komentar, balasan, dan interaksi konten lain yang Anda kirimkan.',
-      'Avatar profil, foto makanan, dan gambar lain yang Anda unggah untuk fitur estimasi nutrisi atau pencatatan wellness.',
-      'Informasi perangkat, aplikasi, token FCM, locale, zona waktu, data sesi, serta data teknis yang wajar diperlukan untuk keamanan dan fungsi aplikasi.',
-      'Informasi yang disimpan lokal di perangkat seperti token sesi, user ID, preferensi notifikasi, status persetujuan disclaimer, dan pengaturan aplikasi tertentu.',
-      'Informasi yang Anda berikan saat menghubungi dukungan, melaporkan masalah, atau meminta penghapusan akun.'
+      'Interaksi edukasi di dalam aplikasi, termasuk suka (likes), komentar, balasan, dan interaksi konten lain yang Anda kirimkan.',
+      'Gambar avatar profil, foto makanan, dan gambar lain yang Anda unggah untuk fitur estimasi nutrisi atau pencatatan wellness.',
+      'Informasi perangkat, aplikasi, token FCM, lokal (locale), zona waktu, data sesi, serta data teknis yang secara wajar diperlukan untuk keamanan dan fungsionalitas aplikasi.',
+      'Informasi terbatas yang disimpan secara lokal di perangkat Anda seperti token sesi, ID pengguna, preferensi notifikasi, status persetujuan disclaimer, dan pengaturan aplikasi.',
+      'Informasi yang Anda berikan saat menghubungi layanan dukungan, melaporkan masalah, atau meminta penghapusan akun.'
     ]
   },
   {
-    title: 'Cara Kami Menggunakan Informasi',
+    title: '2. Cara Kami Menggunakan Informasi',
     bullets: [
       'Membuat, memverifikasi, mengamankan, dan mengelola akun Anda.',
-      'Mengautentikasi pengguna melalui email dan password, OTP verification, dan Google Sign-In opsional.',
-      'Menyediakan fitur PulseWise untuk diary, rutinitas, kontak dukungan, estimasi nutrisi, wellness summary, dan konten edukasi.',
-      'Mencatat, menampilkan, mengatur, dan merangkum informasi yang Anda pilih untuk dicatat di aplikasi.',
-      'Mengirim reminder rutinitas, notifikasi layanan, pemberitahuan keamanan, dan pesan terkait akun.',
+      'Mengautentikasi pengguna melalui email dan kata sandi, verifikasi OTP, dan Google Sign-In (opsional).',
+      'Menyediakan fitur PulseWise untuk catatan harian, rutinitas, kontak dukungan, estimasi nutrisi, ringkasan wellness, dan konten edukasi.',
+      'Mencatat, menampilkan, mengatur, dan merangkum informasi yang Anda pilih untuk dicatat di dalam aplikasi.',
+      'Mengirimkan pengingat rutinitas, notifikasi layanan, pemberitahuan keamanan, dan pesan terkait akun.',
       'Menyimpan dan menampilkan avatar profil serta memproses foto makanan untuk estimasi nutrisi dan fitur wellness terkait.',
       'Meningkatkan keandalan layanan, mendiagnosis masalah teknis, mencegah penyalahgunaan, menanggapi permintaan dukungan, dan memenuhi kewajiban hukum.'
     ],
-    note: 'Kami tidak menjual data pribadi Anda dan tidak menggunakan data pribadi untuk iklan yang dipersonalisasi.'
+    note: 'Kami tidak memperjualbelikan data pribadi Anda dan tidak menggunakan data pribadi Anda untuk tujuan periklanan yang dipersonalisasi.'
   },
   {
-    title: 'Izin Perangkat dan Fitur Opsional',
+    title: '3. Izin Perangkat dan Fitur Opsional',
     bullets: [
-      'Kamera, jika Anda memilih mengambil foto makanan atau gambar lain di dalam aplikasi.',
-      'Foto, file, atau media akses, jika Anda memilih mengunggah avatar atau memilih gambar dari perangkat Anda.',
-      'Kontak, hanya jika Anda memilih mengimpor kontak dukungan dari buku kontak perangkat.',
-      'Notifikasi, untuk reminder rutinitas, pemberitahuan akun, dan pembaruan layanan.'
+      'Kamera: Jika Anda memilih untuk mengambil foto makanan atau gambar lain di dalam aplikasi.',
+      'Foto, file, atau akses media: Jika Anda memilih untuk mengunggah avatar atau memilih gambar dari perangkat Anda.',
+      'Kontak: Hanya jika Anda memilih untuk mengimpor kontak dukungan dari buku telepon perangkat Anda.',
+      'Notifikasi: Untuk mengirimkan pengingat rutinitas, pemberitahuan akun, dan pembaruan layanan.'
     ],
     paragraphs: [
-      'Anda dapat menolak atau mencabut izin melalui pengaturan perangkat, tetapi beberapa fitur opsional mungkin tidak lagi berfungsi sebagaimana mestinya.',
-      'Rilis Play Store PulseWise saat ini tidak meminta izin Health Connect dan tidak mengakses Health Connect, Google Fit, Apple Health, atau penyimpanan data kesehatan tingkat platform yang serupa.'
+      'Anda dapat menolak atau mencabut izin tersebut melalui pengaturan perangkat, namun beberapa fitur opsional mungkin tidak akan berfungsi sebagaimana mestinya.',
+      'Rilis PulseWise di Play Store saat ini tidak meminta izin Health Connect dan tidak mengakses Health Connect, Google Fit, Apple Health, atau penyimpanan data kesehatan tingkat platform yang serupa.'
     ]
   },
   {
-    title: 'Cara Kami Membagikan Informasi',
+    title: '4. Cara Kami Membagikan Informasi',
     paragraphs: [
-      'Kami dapat membagikan informasi dengan penyedia backend, hosting, storage, notification, analytics, security, dan infrastruktur yang membantu mengoperasikan PulseWise.',
-      'Kami juga dapat menggunakan layanan Google untuk autentikasi dan notifikasi, termasuk Google Sign-In dan Firebase Cloud Messaging, serta Cloudinary atau penyedia media serupa untuk penyimpanan avatar dan media lain yang didukung.'
+      'Kami dapat membagikan informasi dengan penyedia backend, hosting, penyimpanan, notifikasi, analitik, keamanan, dan infrastruktur yang membantu mengoperasikan PulseWise.',
+      'Kami juga dapat menggunakan layanan Google untuk autentikasi dan notifikasi, termasuk Google Sign-In dan Firebase Cloud Messaging, serta Cloudinary atau penyedia layanan media serupa untuk penyimpanan avatar dan media lain yang didukung.'
     ],
     bullets: [
-      'Dengan personel internal yang berwenang untuk operasional layanan, dukungan, keamanan, moderasi, atau kepatuhan.',
+      'Kepada personel internal yang berwenang untuk operasional layanan, dukungan, keamanan, moderasi, atau kepatuhan.',
       'Jika diwajibkan oleh hukum, proses hukum, regulasi, atau permintaan pemerintah yang sah.',
       'Untuk melindungi hak, keselamatan, keamanan, pengguna, PulseWise, atau publik.',
-      'Untuk mendeteksi, menyelidiki, atau menangani fraud, penyalahgunaan, insiden keamanan, atau masalah teknis.'
+      'Untuk mendeteksi, menyelidiki, atau menangani kecurangan (fraud), penyalahgunaan, insiden keamanan, atau masalah teknis.'
     ],
-    note: 'Kami tidak membagikan data pribadi Anda kepada pihak ketiga untuk tujuan iklan yang dipersonalisasi milik mereka sendiri.'
+    note: 'Kami tidak membagikan data pribadi Anda kepada pihak ketiga untuk tujuan periklanan yang dipersonalisasi milik mereka sendiri.'
   },
   {
-    title: 'Pemberitahuan Tentang Scope Wellness',
+    title: '5. Pemberitahuan Ruang Lingkup Layanan (Wellness Scope)',
     paragraphs: [
-      'PulseWise ditujukan untuk wellness umum, self-tracking, reminder, dan dukungan edukatif. Ringkasan wellness pribadi, tampilan progres rutinitas, serta estimasi terkait nutrisi yang kami hasilkan bukan diagnosis medis, rekomendasi pengobatan, atau keputusan klinis.',
+      'PulseWise ditujukan untuk pemantauan wellness secara umum, pencatatan mandiri (self-tracking), pengingat, dan dukungan edukatif. Ringkasan kesehatan pribadi, tampilan progres rutinitas, serta estimasi terkait nutrisi yang dihasilkan dari input Anda bukanlah diagnosis medis, rekomendasi pengobatan, atau keputusan klinis.',
       'Jika versi PulseWise di masa depan menambahkan integrasi data atau izin opsional baru, kami akan memperbarui kebijakan ini dan pengungkapan platform terkait sebelum perubahan tersebut berlaku.'
     ]
   },
   {
-    title: 'Penyimpanan Data',
+    title: '6. Penyimpanan Data',
     paragraphs: [
-      'Kami menyimpan data pribadi selama diperlukan secara wajar untuk menyediakan PulseWise, menjaga akun Anda, memenuhi kewajiban hukum, menyelesaikan sengketa, menegakkan perjanjian, dan melindungi layanan serta pengguna kami.',
-      'Jika Anda meminta penghapusan akun atau data, kami akan memproses permintaan tersebut sesuai hukum yang berlaku serta kewajiban operasional, keamanan, dan hukum kami. Dalam beberapa kasus, kami dapat menyimpan informasi terbatas untuk alasan yang sah seperti pencegahan fraud, keamanan, penyelesaian sengketa, atau kepatuhan hukum.',
-      'Informasi yang disimpan secara lokal di perangkat Anda dapat tetap ada sampai Anda logout, menghapus penyimpanan aplikasi, mencabut izin, atau menghapus instalasi aplikasi.'
+      'Kami menyimpan data pribadi selama diperlukan secara wajar untuk menyediakan PulseWise, mengelola akun Anda, memenuhi kewajiban hukum, menyelesaikan sengketa, menegakkan perjanjian, dan melindungi layanan serta pengguna kami.',
+      'Jika Anda meminta penghapusan akun atau data, kami akan memproses permintaan tersebut sesuai dengan hukum yang berlaku serta kewajiban operasional, keamanan, dan hukum kami. Dalam beberapa kasus, kami dapat menyimpan informasi terbatas untuk alasan yang sah seperti pencegahan fraud, keamanan, penyelesaian sengketa, atau kepatuhan hukum.',
+      'Informasi yang disimpan secara lokal di perangkat Anda dapat tetap ada sampai Anda keluar (logout), menghapus penyimpanan aplikasi (clear storage), mencabut izin, atau menghapus instalasi aplikasi.'
     ]
   },
   {
-    title: 'Penghapusan Akun dan Data',
+    title: '7. Penghapusan Akun dan Data',
     paragraphs: [
-      'PulseWise menyediakan alur penghapusan akun di dalam aplikasi. Anda juga dapat meminta penghapusan akun PulseWise dan data terkait dengan menghubungi kami melalui email atau menggunakan formulir permintaan penghapusan akun.',
-      'Jika diperlukan verifikasi tambahan sebelum penghapusan demi alasan keamanan atau hukum, kami akan memberi tahu Anda selama proses penghapusan.'
+      'PulseWise menyediakan alur penghapusan akun di dalam aplikasi. Anda juga dapat meminta penghapusan akun PulseWise Anda dan data terkait dengan menghubungi kami melalui email atau menggunakan formulir permintaan penghapusan yang ditautkan di bawah ini.',
+      'Jika diperlukan verifikasi tambahan sebelum penghapusan demi alasan keamanan atau hukum, kami akan memberi tahu Anda selama proses tersebut berlangsung.'
     ]
   },
   {
-    title: 'Keamanan',
+    title: '8. Keamanan',
     paragraphs: [
-      'Kami menggunakan langkah administratif, teknis, dan organisasional yang wajar untuk melindungi data pribadi dan informasi terkait wellness. Sebagai contoh, akses ke area yang dilindungi akun memerlukan autentikasi, dan aplikasi dirancang untuk menggunakan koneksi jaringan yang aman jika didukung.',
-      'Namun, tidak ada metode transmisi atau penyimpanan yang sepenuhnya aman, dan kami tidak dapat menjamin keamanan absolut.'
+      'Kami menggunakan langkah-langkah administratif, teknis, dan organisasional yang wajar, yang dirancang untuk melindungi data pribadi dan informasi terkait wellness. Sebagai contoh, akses ke area yang dilindungi akun memerlukan autentikasi, dan aplikasi dirancang untuk menggunakan koneksi jaringan yang aman jika didukung.',
+      'Namun, tidak ada metode transmisi atau penyimpanan yang sepenuhnya aman, dan kami tidak dapat menjamin keamanan yang absolut.'
     ]
   },
   {
-    title: 'Pilihan dan Hak Anda',
+    title: '9. Pilihan dan Hak Anda',
     bullets: [
       'Mengakses, memperbarui, atau memperbaiki informasi akun atau profil Anda.',
-      'Mengelola izin kamera, kontak, notifikasi, dan akses media melalui pengaturan perangkat.',
+      'Mengelola izin untuk kamera, kontak, notifikasi, dan akses media melalui pengaturan perangkat Anda.',
       'Meminta penghapusan akun Anda atau data pribadi tertentu.',
-      'Menghubungi kami untuk pertanyaan, permintaan, atau keluhan terkait privasi.'
+      'Menghubungi kami terkait pertanyaan, permintaan, atau keluhan tentang privasi.'
     ],
     paragraphs: [
-      'Anda juga dapat memilih untuk tidak menggunakan fitur opsional seperti Google Sign-In, unggah avatar, impor kontak, atau estimasi nutrisi berbasis foto makanan.'
+      'Anda juga dapat memilih untuk tidak menggunakan fitur opsional seperti Google Sign-In, unggahan avatar, impor kontak, atau estimasi nutrisi berbasis foto makanan.'
     ]
   },
   {
-    title: 'Privasi Anak',
+    title: '10. Privasi Anak-anak',
     paragraphs: [
-      'PulseWise tidak ditujukan untuk anak di bawah usia 13 tahun kecuali secara tegas dinyatakan lain oleh Penelitian Cak Shon dan didukung oleh perlindungan hukum serta persetujuan yang sesuai. Jika Anda yakin seorang anak telah memberikan data pribadi yang melanggar hukum yang berlaku, silakan hubungi kami melalui email yang tercantum di bawah.'
+      'PulseWise tidak ditujukan untuk anak-anak di bawah usia 13 tahun, kecuali secara tegas dinyatakan lain oleh Penelitian Cak Shon dan didukung oleh perlindungan hukum serta persetujuan yang sesuai. Jika Anda meyakini bahwa seorang anak telah memberikan data pribadi yang melanggar hukum yang berlaku, silakan hubungi kami melalui email di bawah ini.'
     ]
   },
   {
-    title: 'Pemrosesan Internasional',
+    title: '11. Pemrosesan Internasional',
     paragraphs: [
-      'Tergantung pada cara PulseWise dioperasikan, informasi Anda dapat diproses atau disimpan di negara selain negara Anda, termasuk negara tempat penyedia layanan kami beroperasi. Jika diwajibkan, kami akan mengambil langkah yang wajar untuk membantu melindungi data pribadi sesuai hukum yang berlaku.'
+      'Tergantung pada cara PulseWise dioperasikan, informasi Anda dapat diproses atau disimpan di negara selain negara Anda, termasuk negara tempat penyedia layanan kami beroperasi. Jika diwajibkan, kami akan mengambil langkah-langkah yang wajar untuk melindungi data pribadi sesuai dengan hukum yang berlaku.'
     ]
   },
   {
-    title: 'Perubahan pada Kebijakan Privasi Ini',
+    title: '12. Perubahan pada Kebijakan Privasi Ini',
     paragraphs: [
       'Kami dapat memperbarui Kebijakan Privasi ini dari waktu ke waktu. Jika kami membuat perubahan material, kami dapat memperbarui Tanggal Berlaku di atas dan, jika sesuai, memberikan pemberitahuan tambahan di dalam aplikasi atau melalui cara lain yang wajar.'
     ]
   },
   {
-    title: 'Hubungi Kami',
+    title: '13. Hubungi Kami',
     paragraphs: [
-      'Jika Anda memiliki pertanyaan, permintaan, atau kekhawatiran mengenai kebijakan ini atau praktik data kami, silakan hubungi kami melalui email yang tersedia di bawah.'
+      'Jika Anda memiliki pertanyaan, permintaan, atau kekhawatiran mengenai Kebijakan Privasi ini atau praktik pengelolaan data kami, silakan hubungi kami melalui email yang tercantum di bawah ini.'
     ]
   }
 ];
 
 const POLICY_EN = [
   {
-    title: 'Information We Collect',
+    title: '1. Information We Collect',
     paragraphs: [
       'We may collect account and identity information such as name, email address, password, OTP verification data, internal account identifiers, account status, and related authentication records.',
       'If you sign in with Google, we may receive certain Google account details needed to complete sign-in, such as your name, email address, profile photo, and authentication token.',
@@ -156,7 +156,7 @@ const POLICY_EN = [
     ]
   },
   {
-    title: 'How We Use Information',
+    title: '2. How We Use Information',
     bullets: [
       'Create, verify, secure, and manage your account.',
       'Authenticate users through email and password, OTP verification, and optional Google Sign-In.',
@@ -169,12 +169,12 @@ const POLICY_EN = [
     note: 'We do not sell your personal data and we do not use your personal data for personalized advertising.'
   },
   {
-    title: 'Permissions and Optional Features',
+    title: '3. Permissions and Optional Features',
     bullets: [
-      'Camera, if you choose to capture a food photo or other image inside the app.',
-      'Photos, files, or media access, if you choose to upload an avatar image or select an image from your device.',
-      'Contacts, only if you choose to import a support contact from your device contacts.',
-      'Notifications, to deliver routine reminders, account notifications, and service updates.'
+      'Camera: If you choose to capture a food photo or other image inside the app.',
+      'Photos, files, or media access: If you choose to upload an avatar image or select an image from your device.',
+      'Contacts: Only if you choose to import a support contact from your device contacts.',
+      'Notifications: To deliver routine reminders, account notifications, and service updates.'
     ],
     paragraphs: [
       'You may deny or revoke these permissions through your device settings, but some optional features may no longer work as intended.',
@@ -182,7 +182,7 @@ const POLICY_EN = [
     ]
   },
   {
-    title: 'How We Share Information',
+    title: '4. How We Share Information',
     paragraphs: [
       'We may share information with backend, hosting, storage, notification, analytics, security, and infrastructure providers that help operate PulseWise.',
       'We may also use Google services for authentication and notifications, including Google Sign-In and Firebase Cloud Messaging, and Cloudinary or similar media providers for avatars and other supported media.'
@@ -196,14 +196,14 @@ const POLICY_EN = [
     note: 'We do not share your personal data with third parties for their own personalized advertising purposes.'
   },
   {
-    title: 'Wellness Scope Notice',
+    title: '5. Wellness Scope Notice',
     paragraphs: [
       'PulseWise is intended for general wellness, self-tracking, reminders, and educational support. Personal wellness summaries, routine progress views, and nutrition-related estimates generated from your inputs are not medical diagnoses, treatment recommendations, or clinical decisions.',
       'If future versions of PulseWise introduce additional optional data integrations or permissions, we will update this policy and related platform disclosures before those changes apply.'
     ]
   },
   {
-    title: 'Data Retention',
+    title: '6. Data Retention',
     paragraphs: [
       'We retain personal data for as long as reasonably necessary to provide PulseWise, maintain your account, comply with legal obligations, resolve disputes, enforce agreements, and protect the service and our users.',
       'If you request account or data deletion, we will process the request in accordance with applicable law and our operational, security, and legal obligations. In some cases, we may retain limited information for lawful reasons such as fraud prevention, security, dispute resolution, or legal compliance.',
@@ -211,21 +211,21 @@ const POLICY_EN = [
     ]
   },
   {
-    title: 'Account and Data Deletion',
+    title: '7. Account and Data Deletion',
     paragraphs: [
       'PulseWise includes an in-app account deletion flow. You may also request deletion of your account and associated data by contacting us through email or by using the deletion request form linked below.',
       'If additional verification is needed before deletion for security or legal reasons, we will let you know during the deletion process.'
     ]
   },
   {
-    title: 'Security',
+    title: '8. Security',
     paragraphs: [
       'We use reasonable administrative, technical, and organizational measures designed to protect personal data and wellness-related information. For example, access to account-protected areas requires authentication, and the app is designed to use secure network connections where supported.',
       'However, no method of transmission or storage is completely secure, and we cannot guarantee absolute security.'
     ]
   },
   {
-    title: 'Your Choices and Rights',
+    title: '9. Your Choices and Rights',
     bullets: [
       'Access, update, or correct your account or profile information.',
       'Manage permissions for camera, contacts, notifications, and media access through your device settings.',
@@ -237,67 +237,30 @@ const POLICY_EN = [
     ]
   },
   {
-    title: 'Children\'s Privacy',
+    title: "10. Children's Privacy",
     paragraphs: [
       'PulseWise is not intended for children under 13 unless expressly stated otherwise by Penelitian Cak Shon and supported by appropriate legal safeguards and consent. If you believe a child has provided personal data in violation of applicable law, please contact us using the email below.'
     ]
   },
   {
-    title: 'International Processing',
+    title: '11. International Processing',
     paragraphs: [
       'Depending on how PulseWise is operated, your information may be processed or stored in countries other than your own, including countries where our service providers operate. Where required, we will take reasonable steps intended to protect personal data in accordance with applicable law.'
     ]
   },
   {
-    title: 'Changes to This Privacy Policy',
+    title: '12. Changes to This Privacy Policy',
     paragraphs: [
       'We may update this Privacy Policy from time to time. If we make material changes, we may update the Effective Date above and, where appropriate, provide additional notice within the app or through other reasonable means.'
     ]
   },
   {
-    title: 'Contact Us',
+    title: '13. Contact Us',
     paragraphs: [
       'If you have questions, requests, or concerns about this Privacy Policy or our data practices, please contact us using the email listed below.'
     ]
   }
 ];
-
-function PolicySection({ index, section }) {
-  return (
-    <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-4 flex items-start gap-4">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-sm font-bold text-rose-600">
-          {index + 1}
-        </div>
-        <div className="space-y-3">
-          <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
-            {section.title}
-          </h2>
-          {section.paragraphs?.map((paragraph) => (
-            <p key={paragraph} className="text-sm leading-7 text-slate-600">
-              {paragraph}
-            </p>
-          ))}
-          {section.bullets?.length ? (
-            <ul className="space-y-2 text-sm leading-7 text-slate-600">
-              {section.bullets.map((bullet) => (
-                <li key={bullet} className="flex items-start gap-3">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-rose-400" />
-                  <span>{bullet}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {section.note ? (
-            <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm leading-6 text-rose-700">
-              {section.note}
-            </div>
-          ) : null}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 export function PrivacyPolicyPage() {
   const [language, setLanguage] = useState('id');
@@ -305,21 +268,20 @@ export function PrivacyPolicyPage() {
   const policy = useMemo(() => {
     return language === 'id'
       ? {
-          title: 'Kebijakan Privasi PulseWise',
+          title: 'Kebijakan Privasi',
           effectiveDate: EFFECTIVE_DATE_ID,
           intro: [
             `PulseWise disediakan oleh ${LEGAL_ENTITY} ("kami", "kita", atau "milik kami"). Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, membagikan, menyimpan, dan melindungi data pribadi serta informasi terkait wellness saat Anda menggunakan aplikasi PulseWise, layanan terkait, dan saluran dukungan.`,
-            'PulseWise adalah aplikasi wellness untuk konsumen. Aplikasi ini dirancang untuk membantu pengguna membuat catatan harian, mengelola rutinitas, menyimpan kontak dukungan, melihat ringkasan wellness, dan mengakses konten edukasi. PulseWise bukan alat kesehatan dan tidak menyediakan diagnosis, pengobatan, respons darurat, atau nasihat medis profesional.',
+            'PulseWise adalah aplikasi kesehatan dan wellness untuk konsumen. Aplikasi ini dirancang untuk membantu pengguna membuat catatan harian, mengelola rutinitas, menyimpan kontak dukungan, melihat ringkasan wellness, dan mengakses konten edukasi. PulseWise bukanlah alat kesehatan dan tidak memberikan diagnosis, pengobatan, respons darurat, atau nasihat medis profesional.',
             'Dengan menggunakan PulseWise, Anda memahami bahwa informasi Anda akan diproses sebagaimana dijelaskan dalam Kebijakan Privasi ini.'
           ],
           sections: POLICY_ID,
           contactTitle: 'Kontak Privasi',
-          deleteLabel: 'Form Permintaan Penghapusan Akun',
-          loginLabel: 'Kembali ke Login',
-          policyLabel: 'Bahasa Indonesia'
+          deleteLabel: 'Form Permintaan Penghapusan',
+          loginLabel: 'Kembali ke Login'
         }
       : {
-          title: 'PulseWise Privacy Policy',
+          title: 'Privacy Policy',
           effectiveDate: EFFECTIVE_DATE_EN,
           intro: [
             `PulseWise is provided by ${LEGAL_ENTITY} ("we", "us", or "our"). This Privacy Policy explains how we collect, use, disclose, store, and protect personal data and wellness-related information when you use the PulseWise application, related services, and support channels.`,
@@ -328,152 +290,153 @@ export function PrivacyPolicyPage() {
           ],
           sections: POLICY_EN,
           contactTitle: 'Privacy Contact',
-          deleteLabel: 'Account Deletion Request Form',
-          loginLabel: 'Back to Login',
-          policyLabel: 'English'
+          deleteLabel: 'Account Deletion Request',
+          loginLabel: 'Back to Login'
         };
   }, [language]);
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6 sm:py-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <section className="relative overflow-hidden rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-sm sm:p-10">
-          <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]" />
-          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-rose-50 blur-3xl" />
+    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+      {/* Main Document Container */}
+      <main className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {/* Document Header */}
+        <header className="border-b border-slate-200 bg-slate-50/50 p-6 sm:p-10">
+          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-6">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-colors hover:text-slate-900"
+              >
+                <ArrowLeft size={16} />
+                {policy.loginLabel}
+              </Link>
 
-          <div className="relative z-10 space-y-6">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-4">
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-rose-200 hover:text-rose-600"
-                >
-                  <ArrowLeft size={16} />
-                  {policy.loginLabel}
-                </Link>
+              <div>
                 <img
                   src={PULSEWISE_LOGO_FULL_URL}
                   alt="PulseWise"
-                  className="h-10 w-auto object-contain"
+                  className="mb-4 h-8 w-auto object-contain"
                 />
-                <div className="space-y-3">
-                  <div className="inline-flex items-center gap-2 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.24em] text-rose-600">
-                    <ShieldCheck size={14} />
-                    Privacy Policy
-                  </div>
-                  <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl sm:leading-[1.05]">
-                    {policy.title}
-                  </h1>
-                  <p className="text-sm font-medium text-slate-500 sm:text-base">
-                    Effective Date: {policy.effectiveDate}
-                  </p>
+                <div className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
+                  <ShieldCheck size={14} />
+                  Legal Document
                 </div>
-              </div>
-
-              <div className="flex flex-col gap-3 sm:items-end">
-                <div className="inline-flex rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-                  <button
-                    type="button"
-                    onClick={() => setLanguage('id')}
-                    className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${language === 'id' ? 'bg-rose-600 text-white' : 'text-slate-500 hover:text-slate-800'}`}
-                  >
-                    ID
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setLanguage('en')}
-                    className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${language === 'en' ? 'bg-rose-600 text-white' : 'text-slate-500 hover:text-slate-800'}`}
-                  >
-                    EN
-                  </button>
-                </div>
-                <div className="rounded-3xl border border-slate-200 bg-white px-4 py-4 text-sm text-slate-600 shadow-sm sm:max-w-xs">
-                  <div className="mb-2 inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
-                    <Globe2 size={14} />
-                    {policy.policyLabel}
-                  </div>
-                  <p className="leading-6">
-                    Kebijakan ini disediakan untuk membantu pengguna memahami cara PulseWise memproses data akun dan data wellness secara transparan.
-                  </p>
-                </div>
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                  {policy.title}
+                </h1>
+                <p className="mt-2 text-sm text-slate-500">
+                  Effective Date: {policy.effectiveDate}
+                </p>
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
-                  Legal Entity
-                </p>
-                <p className="mt-2 text-base font-semibold text-slate-900">
-                  {LEGAL_ENTITY}
-                </p>
-              </div>
-              <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-400">
-                  Contact Email
-                </p>
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="mt-2 inline-flex items-center gap-2 text-base font-semibold text-rose-600 transition-colors hover:text-rose-700"
-                >
-                  <Mail size={16} />
-                  {CONTACT_EMAIL}
-                </a>
-              </div>
-            </div>
-
-            <div className="space-y-4 text-sm leading-7 text-slate-600 sm:text-base">
-              {policy.intro.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
+            {/* Language Toggle Control */}
+            <div className="inline-flex shrink-0 rounded-lg bg-slate-100 p-1">
+              <button
+                type="button"
+                onClick={() => setLanguage('id')}
+                className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
+                  language === 'id'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                Bahasa Indonesia
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`rounded-md px-4 py-2 text-sm font-medium transition-all ${
+                  language === 'en'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                English
+              </button>
             </div>
           </div>
-        </section>
+        </header>
 
-        <section className="grid gap-4">
-          {policy.sections.map((section, index) => (
-            <PolicySection key={section.title} index={index} section={section} />
-          ))}
-        </section>
-
-        <section className="rounded-[32px] border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">
-          <div className="grid gap-4 sm:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-3">
-              <h2 className="text-2xl font-extrabold text-slate-900">
-                {policy.contactTitle}
-              </h2>
-              <p className="text-sm leading-7 text-slate-600">
-                {LEGAL_ENTITY}
-                <br />
-                <a
-                  href={`mailto:${CONTACT_EMAIL}`}
-                  className="font-semibold text-rose-600 transition-colors hover:text-rose-700"
-                >
-                  {CONTACT_EMAIL}
-                </a>
+        {/* Document Body */}
+        <div className="p-6 sm:p-10">
+          {/* Intro Section */}
+          <div className="prose prose-slate max-w-none prose-p:leading-relaxed">
+            {policy.intro.map((paragraph, idx) => (
+              <p key={idx} className="text-slate-600">
+                {paragraph}
               </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:items-end sm:justify-center">
+            ))}
+          </div>
+
+          <hr className="my-10 border-slate-200" />
+
+          {/* Policy Sections */}
+          <div className="space-y-12">
+            {policy.sections.map((section) => (
+              <section key={section.title} className="scroll-mt-8">
+                <h2 className="mb-4 text-xl font-semibold tracking-tight text-slate-900">
+                  {section.title}
+                </h2>
+
+                <div className="space-y-4 text-slate-600 leading-relaxed">
+                  {section.paragraphs?.map((paragraph, idx) => (
+                    <p key={idx}>{paragraph}</p>
+                  ))}
+
+                  {section.bullets?.length > 0 && (
+                    <ul className="list-outside list-disc space-y-2 pl-5 marker:text-slate-400">
+                      {section.bullets.map((bullet, idx) => (
+                        <li key={idx}>{bullet}</li>
+                      ))}
+                    </ul>
+                  )}
+
+                  {section.note && (
+                    <div className="mt-4 rounded-lg bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700 border border-slate-200">
+                      <strong className="text-slate-900">Catatan: </strong>
+                      {section.note}
+                    </div>
+                  )}
+                </div>
+              </section>
+            ))}
+          </div>
+
+          <hr className="my-10 border-slate-200" />
+
+          {/* Contact & Legal Entity Footer */}
+          <div className="rounded-xl bg-slate-50 p-6 sm:p-8 border border-slate-100">
+            <h2 className="mb-4 text-xl font-semibold text-slate-900">
+              {policy.contactTitle}
+            </h2>
+            <div className="flex flex-col gap-6 sm:flex-row sm:justify-between sm:items-end">
+              <div className="text-slate-600">
+                <p className="font-medium text-slate-900">{LEGAL_ENTITY}</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <Mail size={16} className="text-slate-400" />
+                  <a
+                    href={`mailto:${CONTACT_EMAIL}`}
+                    className="text-rose-600 hover:text-rose-700 hover:underline"
+                  >
+                    {CONTACT_EMAIL}
+                  </a>
+                </div>
+              </div>
+
               <a
                 href={DELETE_FORM_URL}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition-colors hover:bg-rose-700"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-900"
               >
-                <ExternalLink size={16} />
+                <ExternalLink size={16} className="text-slate-400" />
                 {policy.deleteLabel}
-              </a>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition-colors hover:border-rose-200 hover:text-rose-600"
-              >
-                <Mail size={16} />
-                {CONTACT_EMAIL}
               </a>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }
