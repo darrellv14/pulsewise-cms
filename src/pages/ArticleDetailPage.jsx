@@ -76,10 +76,10 @@ export function ArticleDetailPage() {
       'Anda';
     const badge =
       user?.role === 'doctor'
-        ? 'Ditulis Dokter'
+        ? 'Dokter'
         : user?.role === 'admin'
-          ? 'Ditulis Admin'
-          : 'Ditulis Pasien';
+          ? 'Admin'
+          : 'Pasien';
     return {
       role: user?.role || 'patient',
       displayName: name,

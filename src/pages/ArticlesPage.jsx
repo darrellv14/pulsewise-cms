@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -80,7 +80,7 @@ export function ArticlesPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 pb-12">
       <section className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-8 shadow-sm sm:p-12 md:p-16">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px]" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-size-[24px_24px]" />
         <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-rose-50 blur-3xl" />
 
         <div className="relative z-10 flex max-w-2xl flex-col items-start gap-6">

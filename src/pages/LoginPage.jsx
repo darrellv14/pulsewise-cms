@@ -211,7 +211,7 @@ export function LoginPage() {
         </div>
 
         <div className="flex w-full flex-col justify-center p-6 md:w-7/12 md:p-10">
-          <div className="mx-auto w-full max-w-[360px]">
+          <div className="mx-auto w-full max-w-90">
             <div className="mb-6">
               <img
                 src={PULSEWISE_LOGO_ICON_URL}
