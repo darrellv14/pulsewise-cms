@@ -269,6 +269,8 @@ export function PrivacyPolicyPage() {
     return language === 'id'
       ? {
           title: 'Kebijakan Privasi',
+          badgeLabel: 'Dokumen Hukum',
+          dateLabel: 'Tanggal Berlaku',
           effectiveDate: EFFECTIVE_DATE_ID,
           intro: [
             `PulseWise disediakan oleh ${LEGAL_ENTITY} ("kami", "kita", atau "milik kami"). Kebijakan Privasi ini menjelaskan bagaimana kami mengumpulkan, menggunakan, membagikan, menyimpan, dan melindungi data pribadi serta informasi terkait wellness saat Anda menggunakan aplikasi PulseWise, layanan terkait, dan saluran dukungan.`,
@@ -282,6 +284,8 @@ export function PrivacyPolicyPage() {
         }
       : {
           title: 'Privacy Policy',
+          badgeLabel: 'Legal Document',
+          dateLabel: 'Effective Date',
           effectiveDate: EFFECTIVE_DATE_EN,
           intro: [
             `PulseWise is provided by ${LEGAL_ENTITY} ("we", "us", or "our"). This Privacy Policy explains how we collect, use, disclose, store, and protect personal data and wellness-related information when you use the PulseWise application, related services, and support channels.`,
@@ -317,15 +321,17 @@ export function PrivacyPolicyPage() {
                   alt="PulseWise"
                   className="mb-4 h-8 w-auto object-contain"
                 />
+                {/* Badge Label dinamis (Dokumen Hukum / Legal Document) */}
                 <div className="mb-2 inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600">
                   <ShieldCheck size={14} />
-                  Legal Document
+                  {policy.badgeLabel}
                 </div>
                 <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                   {policy.title}
                 </h1>
+                {/* Tanggal Berlaku dinamis (Tanggal Berlaku / Effective Date) */}
                 <p className="mt-2 text-sm text-slate-500">
-                  Effective Date: {policy.effectiveDate}
+                  {policy.dateLabel}: {policy.effectiveDate}
                 </p>
               </div>
             </div>
