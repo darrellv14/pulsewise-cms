@@ -457,7 +457,7 @@ export function ArticleForm({
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-3xl space-y-5 px-0 py-4 sm:space-y-6 sm:px-2 sm:py-6 md:px-8 md:py-10">
+      <div className="mx-auto w-full max-w-3xl space-y-5 px-3 py-4 sm:space-y-6 sm:px-4 sm:py-6 md:px-8 md:py-10">
         {Object.keys(errors).length ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 sm:px-5 text-sm text-amber-800">
             <p className="font-semibold">
@@ -715,6 +715,3 @@ export function ArticleForm({
     </div>
   );
 }
-
-
-
