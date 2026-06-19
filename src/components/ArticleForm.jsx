@@ -710,6 +710,32 @@ export function ArticleForm({
               terbaru.
             </p>
           ) : null}
+
+          <div className="mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-slate-700">
+                Sudah selesai menulis?
+              </p>
+              <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
+                Anda bisa langsung mengajukan artikel dari bagian bawah ini tanpa perlu kembali ke atas.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSubmitReview}
+              disabled={
+                submitPending || coverUploading || autosaveStatus === 'saving'
+              }
+              className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-pulse px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-pulse-dark disabled:cursor-not-allowed disabled:opacity-70 sm:w-auto sm:px-5"
+            >
+              {submitPending ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Send size={16} className="rotate-45 -mt-1" />
+              )}
+              {submitPending ? submitPendingLabel : submitLabel}
+            </button>
+          </div>
         </div>
       </div>
     </div>
